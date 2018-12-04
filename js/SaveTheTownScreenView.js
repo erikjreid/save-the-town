@@ -143,6 +143,7 @@ define( require => {
             zombie.row = k;
             zombie.life = 20;
             zombie.attack = 20;
+            zombie.scaleFactor = 1;
             this.addChild( zombie );
             zombieList.push( zombie );
           }
@@ -159,9 +160,10 @@ define( require => {
           var giant = zombieList[ index ];
           var c = giant.center;
           giant.scale( 2 );
+          giant.scaleFactor *= 2;
           giant.center = c;
           giant.attack *= 10;
-          giant.life *= 10;
+          giant.life *= 100;
         }
       };
       createAllZombies();
@@ -286,37 +288,35 @@ define( require => {
             }
           }
 
-          var deadSoldiers = [];
           for ( let j = 0; j < soldierList.length; j++ ) {
             const soldier = soldierList[ j ];
             if ( soldier.bounds.intersectsBounds( zombie.bounds ) ) {
               soldier.life = soldier.life - 3 * dt * ( zombie.attack + 1 ) / 20;
 
               if ( soldier.life <= 0 ) {
-                deadSoldiers.push( soldier );
+                this.removeChild( soldier );
+                soldierList.splice( j, 1 );
+                j--;
+                noClip.play();
+
+                var newZombie = new Image( zombieImage, {
+                  center: soldier.center,
+                  scale: 0.3
+                } );
+                newZombie.scaleFactor = 1;
+                newZombie.life = 20;
+                newZombie.attack = 20;
+                this.addChild( newZombie );
+                zombieList.push( newZombie );
               }
 
             }
           }
-          for ( let j = 0; j < deadSoldiers.length; j++ ) {
-            const deadSoldier = deadSoldiers[ j ];
-            this.removeChild( deadSoldier );
-            var index = soldierList.indexOf( deadSoldier );
-            if ( index >= 0 ) {
-              soldierList.splice( index, 1 );
-              noClip.play();
-            }
-            var newZombie = new Image( zombieImage, {
-              center: deadSoldier.center,
-              scale: 0.3
-            } );
-            this.addChild( newZombie );
-            zombieList.push( newZombie );
-          }
+          // console.log(soldierList.map(s => s.life));
 
           if ( wall.visible ) {
             if ( zombie.right < wall.left + 30 && !overlapsNextRow( zombie ) ) {
-              zombie.translate( ZOMBIE_SPEED * 2 * Math.random(), 0 );
+              zombie.translate( ZOMBIE_SPEED * 2 * Math.random() / zombie.scaleFactor, 0 );
             }
             if ( zombie.right >= wall.left + 30 ) {
               timeWallHasBeenEaten += dt * zombie.attack / 20;
@@ -327,7 +327,7 @@ define( require => {
             }
           }
           else {
-            zombie.translate( ZOMBIE_SPEED * 2 * Math.random(), 0 );
+            zombie.translate( ZOMBIE_SPEED * 2 * Math.random() / zombie.scaleFactor, 0 );
           }
         }
 
