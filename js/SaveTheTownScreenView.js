@@ -15,12 +15,13 @@ define( require => {
   const Image = require( 'SCENERY/nodes/Image' );
   const Path = require( 'SCENERY/nodes/Path' );
   const Plane = require( 'SCENERY/nodes/Plane' );
+  const saveTheTown = require( 'SAVE_THE_TOWN/saveTheTown' );
   const ScreenView = require( 'JOIST/ScreenView' );
   const Shape = require( 'KITE/Shape' );
   const SoundClip = require( 'TAMBO/sound-generators/SoundClip' );
   const soundManager = require( 'TAMBO/soundManager' );
+  const Text = require( 'SCENERY/nodes/Text' );
   const Vector2 = require( 'DOT/Vector2' );
-  const saveTheTown = require( 'SAVE_THE_TOWN/saveTheTown' );
 
   const armySoldierImage = require( 'image!SAVE_THE_TOWN/armedSoldier.png' );
   const missileImage = require( 'image!SAVE_THE_TOWN/missile.png' );
@@ -34,8 +35,8 @@ define( require => {
   var noSound = require( 'sound!SAVE_THE_TOWN/no.mp3' );
   var tankExplodeSound = require( 'sound!SAVE_THE_TOWN/tank-explode.mp3' );
   var wallCollapseSound = require( 'sound!SAVE_THE_TOWN/wall-collapse.mp3' );
-  var zombieHitsWallSound = require( 'sound!SAVE_THE_TOWN/zombie-hits-wall.mp3' );
   var zombieDeathSound = require( 'sound!SAVE_THE_TOWN/zombiedeath.mp3' );
+  var zombieHitsWallSound = require( 'sound!SAVE_THE_TOWN/zombie-hits-wall.mp3' );
 
   var ZOMBIE_SPEED = 2;
 
@@ -48,6 +49,13 @@ define( require => {
      */
     constructor( model, alignGroup, options ) {
       super();
+
+      var text = new Text( 'Wave ', {
+        fontSize: 20
+      } );
+      this.addChild( text );
+      text.centerX = this.layoutBounds.centerX - 200;
+      text.top = this.layoutBounds.top;
 
       var dingSoundClip = new SoundClip( dingSound, { initialOutputLevel: 0.7 } );
       soundManager.addSoundGenerator( dingSoundClip );
@@ -123,8 +131,11 @@ define( require => {
       var zombieList = [];
 
       var wave = 0;
+
       var createAllZombies = () => {
         wave++;
+
+        text.text = 'Wave ' + wave;
 
         var r = Math.random();
         var giants = [ -1,
@@ -164,6 +175,22 @@ define( require => {
           giant.center = c;
           giant.attack *= 10;
           giant.life *= 100;
+
+          if ( wave >= 5 ) {
+            giant.scale( 2 );
+            giant.scaleFactor *= 2;
+            giant.center = c;
+            giant.attack *= 2;
+            giant.life *= 5;
+          }
+
+          if ( wave >= 10 ) {
+            giant.scale( 2 );
+            giant.scaleFactor *= 2;
+            giant.center = c;
+            giant.attack *= 3;
+            giant.life *= 5;
+          }
         }
       };
       createAllZombies();
