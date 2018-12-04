@@ -37,6 +37,8 @@ define( require => {
   var zombieHitsWallSound = require( 'sound!SAVE_THE_TOWN/zombie-hits-wall.mp3' );
   var zombieDeathSound = require( 'sound!SAVE_THE_TOWN/zombiedeath.mp3' );
 
+  var ZOMBIE_SPEED = 2;
+
   class SaveTheTownScreenView extends ScreenView {
 
     /**
@@ -120,7 +122,17 @@ define( require => {
 
       var zombieList = [];
 
+      var wave = 0;
       var createAllZombies = () => {
+        wave++;
+
+        var r = Math.random();
+        var giants = [ -1,
+          r < 0.5 ? 0 : 1,
+          r < 0.25 ? 1 : r < 0.75 ? 2 : 3,
+          r < 0.25 ? 3 : r < 0.75 ? 4 : 5,
+          10
+        ];
         for ( var k = 0; k < 20; k++ ) {
           for ( var i = 0; i < 6; i++ ) {
             var zombie = new Image( zombieImage, {
@@ -130,9 +142,26 @@ define( require => {
             } );
             zombie.row = k;
             zombie.life = 20;
+            zombie.attack = 20;
             this.addChild( zombie );
             zombieList.push( zombie );
           }
+        }
+
+        var numberGiants = giants[ wave ];
+        if ( wave >= 4 ) {
+          numberGiants = 10 + wave * 2;
+        }
+        console.log( numberGiants );
+
+        for ( let i = 0; i < numberGiants; i++ ) {
+          var index = Math.round( Math.random() * zombieList.length );
+          var giant = zombieList[ index ];
+          var c = giant.center;
+          giant.scale( 2 );
+          giant.center = c;
+          giant.attack *= 10;
+          giant.life *= 10;
         }
       };
       createAllZombies();
@@ -247,7 +276,7 @@ define( require => {
           for ( let j = 0; j < tankList.length; j++ ) {
             const tank = tankList[ j ];
             if ( tank.bounds.intersectsBounds( zombie.bounds ) ) {
-              tank.lifePoints = tank.lifePoints - dt * 2;
+              tank.lifePoints = tank.lifePoints - dt * 2 * zombie.attack / 20;
             }
             if ( tank.lifePoints < 0 ) {
               tank.visible = false;
@@ -261,7 +290,7 @@ define( require => {
           for ( let j = 0; j < soldierList.length; j++ ) {
             const soldier = soldierList[ j ];
             if ( soldier.bounds.intersectsBounds( zombie.bounds ) ) {
-              soldier.life = soldier.life - Math.random() * 3 * dt;
+              soldier.life = soldier.life - 3 * dt * ( zombie.attack + 1 ) / 20;
 
               if ( soldier.life <= 0 ) {
                 deadSoldiers.push( soldier );
@@ -287,10 +316,10 @@ define( require => {
 
           if ( wall.visible ) {
             if ( zombie.right < wall.left + 30 && !overlapsNextRow( zombie ) ) {
-              zombie.translate( 4 * Math.random(), 0 );
+              zombie.translate( ZOMBIE_SPEED * 2 * Math.random(), 0 );
             }
             if ( zombie.right >= wall.left + 30 ) {
-              timeWallHasBeenEaten += dt;
+              timeWallHasBeenEaten += dt * zombie.attack / 20;
 
               if ( !zombieHitsWallClip.isPlaying ) {
                 zombieHitsWallClip.play();
@@ -298,7 +327,7 @@ define( require => {
             }
           }
           else {
-            zombie.translate( 2 * Math.random(), 0 );
+            zombie.translate( ZOMBIE_SPEED * 2 * Math.random(), 0 );
           }
         }
 
@@ -352,7 +381,22 @@ define( require => {
             y--;
           }
         }
+
+        var allRight = true;
+        var minX = Number.MAX_VALUE;
+        zombieList.forEach( function( z ) {
+          if ( z.center.x < minX ) {
+            minX = z.center.x;
+          }
+          if ( z.center.x < 800 ) {
+            allRight = false;
+          }
+        } );
+        if ( allRight ) {
+          createAllZombies();
+        }
       };
+
 
       background.moveToBack();
     }
