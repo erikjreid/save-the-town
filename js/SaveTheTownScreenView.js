@@ -4,6 +4,11 @@
 
 /**
  * View for the "Waves" screen
+ 
+  run these in git bash
+  cd /C/Users/erik/github/
+  node node_modules/http-server/bin/http-server
+
  *
  * @author Sam Reid (PhET Interactive Simulations)
  */
@@ -47,13 +52,20 @@ class SaveTheTownScreenView extends ScreenView {
   constructor( model, alignGroup, options ) {
     super();
 
-    var text = new Text( 'Wave ', {
+    var waveText = new Text( 'Wave  ', {
       fontSize: 20
     } );
-    this.addChild( text );
-    text.centerX = this.layoutBounds.centerX - 200;
-    text.top = this.layoutBounds.top;
+    this.addChild( waveText );
+    waveText.centerX = this.layoutBounds.centerX - 200;
+    waveText.top = this.layoutBounds.top;
 
+       var hiscoreText = new Text( 'hiscore  ', {
+      fontSize: 20
+    } );
+    this.addChild( hiscoreText );
+    hiscoreText.centerX = this.layoutBounds.centerX - 200;
+    hiscoreText.top = waveText.bottom;
+    
     var dingSoundClip = new SoundClip( dingSound, { initialOutputLevel: 0.7 } );
     soundManager.addSoundGenerator( dingSoundClip );
 
@@ -93,10 +105,16 @@ class SaveTheTownScreenView extends ScreenView {
           const selectedTank = tankList[ i ];
           if ( selectedTank.selected ) {
             var missile = new Image( missileImage, {
-              center: selectedTank.center
+              center: selectedTank.center,
+              //rotation: -Math.PI/2
             } );
             this.addChild( missile );
-            missile.target = this.globalToLocalPoint( event.pointer.point );
+            const target = this.globalToLocalPoint( event.pointer.point );
+
+            const vector = target.minus( missile.center ).normalized().times( 30 )
+            missile.velocityVector = vector;
+            missile.strength=75;// goes through about 3-4 zombies
+            missile.rotation = +Math.PI/2 + vector.getAngle();
             missileList.push( missile );
             missileLaunchClip.play();
           }
@@ -107,7 +125,8 @@ class SaveTheTownScreenView extends ScreenView {
           const selectedSoldier = soldierList[ i ];
           if ( selectedSoldier.selected ) {
 
-            for ( var k = 0; k < 5; k++ ) {
+            // Each soldier has 2 guns, so 2 bullets come out at the same time
+            for ( var k = 0; k < 2; k++ ) {
 
               var bullet = new Circle( 7.5, {
                   fill: 'black',
@@ -115,7 +134,10 @@ class SaveTheTownScreenView extends ScreenView {
                 } )
               ;
               this.addChild( bullet );
-              bullet.target = this.globalToLocalPoint( event.pointer.point );
+              const target = this.globalToLocalPoint( event.pointer.point );
+              const vector = target.minus( bullet.center ).normalized().times( 20 )
+            bullet.velocityVector = vector;
+              bullet.strength=25; // should be absorbed when hitting one small zombie
               bulletList.push( bullet );
             }
 
@@ -129,10 +151,28 @@ class SaveTheTownScreenView extends ScreenView {
 
     var wave = 0;
 
+    var highScore = 0;
+
+    let loadedHighScore = localStorage.getItem('highestWave');
+if (loadedHighScore){
+  loadedHighScore = Number.parseInt(loadedHighScore);
+}
+
     var createAllZombies = () => {
       wave++;
 
-      text.text = 'Wave ' + wave;
+if (loadedHighScore && wave>loadedHighScore){
+      localStorage.setItem('highestWave',''+wave)
+    }
+    if (!loadedHighScore){
+localStorage.setItem('highestWave',''+wave)      
+    }
+
+      waveText.text = 'wave' + wave;
+
+      const max = Math.max(loadedHighScore,wave);
+
+      hiscoreText.text='High Score: '+max;
 
       var r = Math.random();
       var giants = [ -1,
@@ -285,7 +325,14 @@ class SaveTheTownScreenView extends ScreenView {
 
     var timeWallHasBeenEaten = 0;
 
+    var isGameOver=false;
+
     this.stepTown = dt => {
+
+if (isGameOver){
+  return;
+}
+
       for ( let i = 0; i < zombieList.length; i++ ) {
         const zombie = zombieList[ i ];
         if ( zombie.life <= 0 ) {
@@ -352,6 +399,15 @@ class SaveTheTownScreenView extends ScreenView {
         }
         else {
           zombie.translate( ZOMBIE_SPEED * 2 * Math.random() / zombie.scaleFactor, 0 );
+
+
+          if (zombie.left>=this.layoutBounds.right ){
+            const gameOverText = new Text('GAME OVER',{fontSize:602,
+              maxWidth:this.layoutBounds.width,
+              center: this.layoutBounds.center});
+            this.addChild(gameOverText);
+            isGameOver=true;
+          }
         }
       }
 
@@ -366,18 +422,19 @@ class SaveTheTownScreenView extends ScreenView {
       ///MISSILES
       for ( let y = 0; y < missileList.length; y++ ) {
         var missile = missileList[ y ];
-        let vector = missile.target.minus( missile.center ).normalized().times( 10 );
+        // let vector = missile.target.minus( missile.center ).normalized().times( 10 );
 
         for ( let i = 0; i < zombieList.length; i++ ) {
           const zombie = zombieList[ i ];
           if ( zombie.bounds.intersectsBounds( missile.bounds ) ) {
             zombie.life = zombie.life - 1;
+            missile.strength=missile.strength-1;
           }
         }
 
-        missile.center = missile.center.plus( vector );
+        missile.center = missile.center.plus( missile.velocityVector );
 
-        if ( missile.center.distance( missile.target ) < 10 ) {
+        if ( missile.strength<=0 ) {
           this.removeChild( missile );
           missileList.splice( y, 1 );
           missileExplodeClip.play();
@@ -388,18 +445,23 @@ class SaveTheTownScreenView extends ScreenView {
       ///BULLETS
       for ( let y = 0; y < bulletList.length; y++ ) {
         var bullet = bulletList[ y ];
-        let vector = bullet.target.minus( bullet.center ).normalized().times( 20 );
+        //let vector = bullet.target.minus( bullet.center ).normalized().times( 20 );
+        const vector = bullet.velocityVector;
+
 
         for ( let i = 0; i < zombieList.length; i++ ) {
           const zombie = zombieList[ i ];
           if ( zombie.bounds.intersectsBounds( bullet.bounds ) ) {
-            zombie.life = zombie.life - 2 / 5;
+            zombie.life = zombie.life - bullet.strength;
+            bullet.strength = bullet.strength - 25;
+
+            console.log(bullet.strength);
           }
         }
 
         bullet.center = bullet.center.plus( vector );
 
-        if ( bullet.center.distance( bullet.target ) < 10 ) {
+        if ( bullet.strength <= 0 ) {
           this.removeChild( bullet );
           bulletList.splice( y, 1 );
           y--;
