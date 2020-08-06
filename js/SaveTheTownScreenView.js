@@ -17,7 +17,9 @@ import Vector2 from '../../dot/js/Vector2.js';
 import ScreenView from '../../joist/js/ScreenView.js';
 import Shape from '../../kite/js/Shape.js';
 import ButtonListener from '../../scenery/js/input/ButtonListener.js';
+import PressListener from '../../scenery/js/listeners/PressListener.js';
 import Circle from '../../scenery/js/nodes/Circle.js';
+import Rectangle from '../../scenery/js/nodes/Rectangle.js';
 import Image from '../../scenery/js/nodes/Image.js';
 import Path from '../../scenery/js/nodes/Path.js';
 import Plane from '../../scenery/js/nodes/Plane.js';
@@ -97,53 +99,13 @@ class SaveTheTownScreenView extends ScreenView {
       fill: 'white'
     } );
     this.addChild( background );
-    background.addInputListener( new ButtonListener( {
-      fire: event => {
-
-        // Fire missiles from the tanks
-        for ( let i = 0; i < tankList.length; i++ ) {
-          const selectedTank = tankList[ i ];
-          if ( selectedTank.selected ) {
-            var missile = new Image( missileImage, {
-              center: selectedTank.center,
-              //rotation: -Math.PI/2
-            } );
-            this.addChild( missile );
-            const target = this.globalToLocalPoint( event.pointer.point );
-
-            const vector = target.minus( missile.center ).normalized().times( 30 )
-            missile.velocityVector = vector;
-            missile.strength=75;// goes through about 3-4 zombies
-            missile.rotation = +Math.PI/2 + vector.getAngle();
-            missileList.push( missile );
-            missileLaunchClip.play();
-          }
-        }
-
-        // Fire bullets from the soldiers
-        for ( let i = 0; i < soldierList.length; i++ ) {
-          const selectedSoldier = soldierList[ i ];
-          if ( selectedSoldier.selected ) {
-
-            // Each soldier has 2 guns, so 2 bullets come out at the same time
-            for ( var k = 0; k < 2; k++ ) {
-
-              var bullet = new Circle( 7.5, {
-                  fill: 'black',
-                  center: selectedSoldier.center.plusXY( Math.random() * 200 - 100, Math.random() * 20 )
-                } )
-              ;
-              this.addChild( bullet );
-              const target = this.globalToLocalPoint( event.pointer.point );
-              const vector = target.minus( bullet.center ).normalized().times( 20 )
-            bullet.velocityVector = vector;
-              bullet.strength=25; // should be absorbed when hitting one small zombie
-              bulletList.push( bullet );
-            }
-
-
-          }
-        }
+    let mousePressEvent=null;
+    background.addInputListener( new PressListener( {
+      press: event => {
+        mousePressEvent = event;
+      },
+      release: event=>{
+        mousePressEvent = null;
       }
     } ) );
 
@@ -190,8 +152,24 @@ localStorage.setItem('highestWave',''+wave)
           } );
           zombie.row = k;
           zombie.life = 20;
+          zombie.maxLife = zombie.life;
           zombie.attack = 20;
           zombie.scaleFactor = 1;
+
+          // life bar
+          zombie.addChild(new Rectangle(0,0,100,20,{
+centerX: zombie.width/0.3/2-50,
+centerY: 150,
+            stroke:'black',fill:'black'}));
+
+          // life bar
+          const dave = new Rectangle(0,0,100,20,{
+centerX: zombie.width/0.3/2-50,
+centerY: 150,
+            stroke:'black',fill:'rgb(100,255,100)'});
+          zombie.addChild(dave);
+          zombie.dave = dave;
+
           this.addChild( zombie );
           zombieList.push( zombie );
         }
@@ -213,6 +191,7 @@ localStorage.setItem('highestWave',''+wave)
         giant.attack *= 10;
         giant.life *= 100;
 
+
         if ( wave >= 5 ) {
           giant.scale( 2 );
           giant.scaleFactor *= 2;
@@ -228,6 +207,7 @@ localStorage.setItem('highestWave',''+wave)
           giant.attack *= 3;
           giant.life *= 5;
         }
+        giant.maxLife= giant.life;
       }
     };
     createAllZombies();
@@ -329,8 +309,62 @@ localStorage.setItem('highestWave',''+wave)
 
     this.stepTown = dt => {
 
+
 if (isGameOver){
   return;
+}
+
+
+
+           
+        if (mousePressEvent ){
+        // Fire missiles from the tanks
+        for ( let i = 0; i < tankList.length; i++ ) {
+          const selectedTank = tankList[ i ];
+
+          // Simulate a cooldown.  No bullet chains
+          if ( selectedTank.selected && Math.random()<0.1) {
+            var missile = new Image( missileImage, {
+              center: selectedTank.center,
+              //rotation: -Math.PI/2
+            } );
+            this.addChild( missile );
+            const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
+
+            const vector = target.minus( missile.center ).normalized().times( 30 )
+            missile.velocityVector = vector;
+            missile.strength=75;// goes through about 3-4 zombies
+            missile.rotation = +Math.PI/2 + vector.getAngle();
+            missileList.push( missile );
+            missileLaunchClip.play();
+          }
+        }
+
+        // Fire bullets from the soldiers
+        for ( let i = 0; i < soldierList.length; i++ ) {
+          const selectedSoldier = soldierList[ i ];
+          if ( selectedSoldier.selected && Math.random()<0.1) {
+
+            // Each soldier has 2 guns, so 2 bullets come out at the same time
+            for ( var k = 0; k < 2; k++ ) {
+
+              var bullet = new Circle( 7.5, {
+                  fill: 'black',
+                  center: selectedSoldier.center.plusXY( Math.random() * 200 - 100, Math.random() * 20 )
+                } )
+              ;
+              this.addChild( bullet );
+              const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
+              const vector = target.minus( bullet.center ).normalized().times( 20 )
+            bullet.velocityVector = vector;
+              bullet.strength=25; // should be absorbed when hitting one small zombie
+              bulletList.push( bullet );
+            }
+
+
+          }
+        }
+
 }
 
       for ( let i = 0; i < zombieList.length; i++ ) {
@@ -386,7 +420,7 @@ if (isGameOver){
         // console.log(soldierList.map(s => s.life));
 
         if ( wall.visible ) {
-          if ( zombie.right < wall.left + 30 && !overlapsNextRow( zombie ) ) {
+          if ( zombie.right < wall.left + 30  ) {
             zombie.translate( ZOMBIE_SPEED * 2 * Math.random() / zombie.scaleFactor, 0 );
           }
           if ( zombie.right >= wall.left + 30 ) {
@@ -427,7 +461,8 @@ if (isGameOver){
         for ( let i = 0; i < zombieList.length; i++ ) {
           const zombie = zombieList[ i ];
           if ( zombie.bounds.intersectsBounds( missile.bounds ) ) {
-            zombie.life = zombie.life - 1;
+            zombie.life = zombie.life - 0.1;
+            zombie.dave.setRectWidth(100*zombie.life/zombie.maxLife);
             missile.strength=missile.strength-1;
           }
         }
