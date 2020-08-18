@@ -11,6 +11,7 @@
 
  *
  * @author Sam Reid (PhET Interactive Simulations)
+ * @author Erik Reid
  */
 
 import Vector2 from '../../dot/js/Vector2.js';
@@ -20,6 +21,8 @@ import ButtonListener from '../../scenery/js/input/ButtonListener.js';
 import PressListener from '../../scenery/js/listeners/PressListener.js';
 import Circle from '../../scenery/js/nodes/Circle.js';
 import Rectangle from '../../scenery/js/nodes/Rectangle.js';
+import Node from '../../scenery/js/nodes/Node.js';
+import RectangularPushButton from '../../sun/js/buttons/RectangularPushButton.js';
 import Image from '../../scenery/js/nodes/Image.js';
 import Path from '../../scenery/js/nodes/Path.js';
 import Plane from '../../scenery/js/nodes/Plane.js';
@@ -32,6 +35,11 @@ import tankImage from '../images/tank_png.js';
 import wallImage from '../images/wall_png.js';
 import zombieImage from '../images/zombie_png.js';
 import saveTheTown from './saveTheTown.js';
+import toxictankImage from '../images/toxictank_jpg.js';
+import grenadebotImage from '../images/grenadebot_jpg.js';
+import HBox from '../../scenery/js/nodes/HBox.js';
+import grenadetankbattleImage from '../images/grenadebot_jpg.js';
+
 
 import dingSound from '../sounds/ding_mp3.js';
 import missileExplodeSound from  '../sounds/missile-explode_mp3.js';
@@ -42,6 +50,7 @@ import wallCollapseSound from  '../sounds/wall-collapse_mp3.js';
 import zombieDeathSound from  '../sounds/zombiedeath_mp3.js';
 import zombieHitsWallSound from  '../sounds/zombie-hits-wall_mp3.js';
 
+import bulletSound from  '../sounds/bullet_mp3.js';
 var ZOMBIE_SPEED = 2;
 
 class SaveTheTownScreenView extends ScreenView {
@@ -67,7 +76,43 @@ class SaveTheTownScreenView extends ScreenView {
     this.addChild( hiscoreText );
     hiscoreText.centerX = this.layoutBounds.centerX - 200;
     hiscoreText.top = waveText.bottom;
-    
+
+    let paused = false;
+let upgradepaused = false
+;
+    const zombieLayer = new Node();
+    this.addChild(zombieLayer);
+
+    const menuButton = new RectangularPushButton({
+      content: new Text('Menu',{
+
+    }),
+    scale: 3,
+     bottom: this.layoutBounds.bottom,
+     listener: ()=>{
+      paused = true;
+      const rect = new Rectangle(0,0,this.layoutBounds.width,this.layoutBounds.height,{
+        fill: 'blue',
+        center: this.layoutBounds.center
+      });
+      this.addChild(rect);
+
+      const returnToGameButton = new RectangularPushButton({
+        centerX: rect.centerX,
+        content: new Text('Return to Game'),
+        scale: 2,
+        listener:()=>{
+          this.removeChild(rect);
+          paused=false;
+        }
+      });
+      rect.addChild(returnToGameButton);
+
+     }
+  });
+    this.addChild(menuButton);
+
+ 
     var dingSoundClip = new SoundClip( dingSound, { initialOutputLevel: 0.7 } );
     soundManager.addSoundGenerator( dingSoundClip );
 
@@ -92,6 +137,10 @@ class SaveTheTownScreenView extends ScreenView {
     var zombieDeathClip = new SoundClip( zombieDeathSound, { initialOutputLevel: 0.7 } );
     soundManager.addSoundGenerator( zombieDeathClip );
 
+
+    var bulletSoundClip = new SoundClip( bulletSound, { initialOutputLevel: 0.4 } );
+    soundManager.addSoundGenerator( bulletSoundClip );
+
     var missileList = [];
     var bulletList = [];
 
@@ -108,7 +157,22 @@ class SaveTheTownScreenView extends ScreenView {
         mousePressEvent = null;
       }
     } ) );
+    const grenadeButtonListener=  new Image(grenadebotImage,{maxHeight:650})
+    grenadeButtonListener.addInputListener( new PressListener( {
+      press: event => {
+         this.removeChild( powerUpScreen )
+        upgradepaused = false
 
+      }
+      
+    } ) );
+   const powerUpScreen = new HBox({
+      children:[grenadeButtonListener,new Image(toxictankImage,{maxHeight:650}),
+     ]
+    });
+    upgradepaused = true
+
+    this.addChild( powerUpScreen )
     var zombieList = [];
 
     var wave = 0;
@@ -163,14 +227,14 @@ centerY: 150,
             stroke:'black',fill:'black'}));
 
           // life bar
-          const dave = new Rectangle(0,0,100,20,{
+          const lifebar = new Rectangle(0,0,100,20,{
 centerX: zombie.width/0.3/2-50,
 centerY: 150,
             stroke:'black',fill:'rgb(100,255,100)'});
-          zombie.addChild(dave);
-          zombie.dave = dave;
+          zombie.addChild(lifebar);
+          zombie.lifebar = lifebar;
 
-          this.addChild( zombie );
+          zombieLayer.addChild( zombie );
           zombieList.push( zombie );
         }
       }
@@ -310,7 +374,7 @@ centerY: 150,
     this.stepTown = dt => {
 
 
-if (isGameOver){
+if (isGameOver || paused || upgradepaused ){
   return;
 }
 
@@ -359,6 +423,8 @@ if (isGameOver){
             bullet.velocityVector = vector;
               bullet.strength=25; // should be absorbed when hitting one small zombie
               bulletList.push( bullet );
+
+              bulletSoundClip.play();
             }
 
 
@@ -370,7 +436,7 @@ if (isGameOver){
       for ( let i = 0; i < zombieList.length; i++ ) {
         const zombie = zombieList[ i ];
         if ( zombie.life <= 0 ) {
-          this.removeChild( zombie );
+          zombieLayer.removeChild( zombie );
           zombieList.splice( i, 1 );
           zombieDeathClip.play();
 
@@ -461,8 +527,8 @@ if (isGameOver){
         for ( let i = 0; i < zombieList.length; i++ ) {
           const zombie = zombieList[ i ];
           if ( zombie.bounds.intersectsBounds( missile.bounds ) ) {
-            zombie.life = zombie.life - 0.1;
-            zombie.dave.setRectWidth(100*zombie.life/zombie.maxLife);
+            zombie.life = zombie.life - 0.7;
+            zombie.lifebar.setRectWidth(100*zombie.life/zombie.maxLife);
             missile.strength=missile.strength-1;
           }
         }
