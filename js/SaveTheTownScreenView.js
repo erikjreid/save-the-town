@@ -4,10 +4,10 @@
 
 /**
  * View for the "Waves" screen
- 
-  run these in git bash
-  cd /C/Users/erik/github/
-  node node_modules/http-server/bin/http-server
+
+ run these in git bash
+ cd /C/Users/erik/github/
+ node node_modules/http-server/bin/http-server
 
  *
  * @author Sam Reid (PhET Interactive Simulations)
@@ -42,562 +42,562 @@ import grenadetankbattleImage from '../images/grenadebot_jpg.js';
 
 
 import dingSound from '../sounds/ding_mp3.js';
-import missileExplodeSound from  '../sounds/missile-explode_mp3.js';
-import missileLaunchSound from  '../sounds/missile-launch_mp3.js';
-import noSound from  '../sounds/no_mp3.js';
-import tankExplodeSound from  '../sounds/tank-explode_mp3.js';
-import wallCollapseSound from  '../sounds/wall-collapse_mp3.js';
-import zombieDeathSound from  '../sounds/zombiedeath_mp3.js';
-import zombieHitsWallSound from  '../sounds/zombie-hits-wall_mp3.js';
+import missileExplodeSound from '../sounds/missile-explode_mp3.js';
+import missileLaunchSound from '../sounds/missile-launch_mp3.js';
+import noSound from '../sounds/no_mp3.js';
+import tankExplodeSound from '../sounds/tank-explode_mp3.js';
+import wallCollapseSound from '../sounds/wall-collapse_mp3.js';
+import zombieDeathSound from '../sounds/zombiedeath_mp3.js';
+import zombieHitsWallSound from '../sounds/zombie-hits-wall_mp3.js';
 
-import bulletSound from  '../sounds/bullet_mp3.js';
+import bulletSound from '../sounds/bullet_mp3.js';
+
 var ZOMBIE_SPEED = 2;
 
 class SaveTheTownScreenView extends ScreenView {
 
-  /**
-   * @param {WavesScreenModel} model
-   * @param {AlignGroup} alignGroup - for aligning the control panels on the right side of the lattice
-   * @param {Object} [options]
-   */
-  constructor( model, alignGroup, options ) {
-    super();
+    /**
+     * @param {WavesScreenModel} model
+     * @param {AlignGroup} alignGroup - for aligning the control panels on the right side of the lattice
+     * @param {Object} [options]
+     */
+    constructor(model, alignGroup, options) {
+        super();
 
-    var waveText = new Text( 'Wave  ', {
-      fontSize: 20
-    } );
-    this.addChild( waveText );
-    waveText.centerX = this.layoutBounds.centerX - 200;
-    waveText.top = this.layoutBounds.top;
+        var waveText = new Text('Wave  ', {
+            fontSize: 20
+        });
+        this.addChild(waveText);
+        waveText.centerX = this.layoutBounds.centerX - 200;
+        waveText.top = this.layoutBounds.top;
 
-       var hiscoreText = new Text( 'hiscore  ', {
-      fontSize: 20
-    } );
-    this.addChild( hiscoreText );
-    hiscoreText.centerX = this.layoutBounds.centerX - 200;
-    hiscoreText.top = waveText.bottom;
+        var hiscoreText = new Text('hiscore  ', {
+            fontSize: 20
+        });
+        this.addChild(hiscoreText);
+        hiscoreText.centerX = this.layoutBounds.centerX - 200;
+        hiscoreText.top = waveText.bottom;
 
-    let paused = false;
-let upgradepaused = false
-;
-    const zombieLayer = new Node();
-    this.addChild(zombieLayer);
+        let paused = false;
+        let upgradepaused = false
+        ;
+        const zombieLayer = new Node();
+        this.addChild(zombieLayer);
 
-    const menuButton = new RectangularPushButton({
-      content: new Text('Menu',{
+        const menuButton = new RectangularPushButton({
+            content: new Text('Menu', {}),
+            scale: 3,
+            bottom: this.layoutBounds.bottom,
+            listener: () => {
+                paused = true;
+                const rect = new Rectangle(0, 0, this.layoutBounds.width, this.layoutBounds.height, {
+                    fill: 'blue',
+                    center: this.layoutBounds.center
+                });
+                this.addChild(rect);
 
-    }),
-    scale: 3,
-     bottom: this.layoutBounds.bottom,
-     listener: ()=>{
-      paused = true;
-      const rect = new Rectangle(0,0,this.layoutBounds.width,this.layoutBounds.height,{
-        fill: 'blue',
-        center: this.layoutBounds.center
-      });
-      this.addChild(rect);
+                const returnToGameButton = new RectangularPushButton({
+                    centerX: rect.centerX,
+                    content: new Text('Return to Game'),
+                    scale: 2,
+                    listener: () => {
+                        this.removeChild(rect);
+                        paused = false;
+                    }
+                });
+                rect.addChild(returnToGameButton);
 
-      const returnToGameButton = new RectangularPushButton({
-        centerX: rect.centerX,
-        content: new Text('Return to Game'),
-        scale: 2,
-        listener:()=>{
-          this.removeChild(rect);
-          paused=false;
-        }
-      });
-      rect.addChild(returnToGameButton);
-
-     }
-  });
-    this.addChild(menuButton);
-
- 
-    var dingSoundClip = new SoundClip( dingSound, { initialOutputLevel: 0.7 } );
-    soundManager.addSoundGenerator( dingSoundClip );
-
-    var missileExplodeClip = new SoundClip( missileExplodeSound, { initialOutputLevel: 0.7 } );
-    soundManager.addSoundGenerator( missileExplodeClip );
-
-    var missileLaunchClip = new SoundClip( missileLaunchSound, { initialOutputLevel: 0.7 } );
-    soundManager.addSoundGenerator( missileLaunchClip );
-
-    var noClip = new SoundClip( noSound, { initialOutputLevel: 0.7 } );
-    soundManager.addSoundGenerator( noClip );
-
-    var tankExplodeClip = new SoundClip( tankExplodeSound, { initialOutputLevel: 0.7 } );
-    soundManager.addSoundGenerator( tankExplodeClip );
-
-    var wallCollapseClip = new SoundClip( wallCollapseSound, { initialOutputLevel: 0.7 } );
-    soundManager.addSoundGenerator( wallCollapseClip );
-
-    var zombieHitsWallClip = new SoundClip( zombieHitsWallSound, { initialOutputLevel: 0.7 } );
-    soundManager.addSoundGenerator( zombieHitsWallClip );
-
-    var zombieDeathClip = new SoundClip( zombieDeathSound, { initialOutputLevel: 0.7 } );
-    soundManager.addSoundGenerator( zombieDeathClip );
-
-
-    var bulletSoundClip = new SoundClip( bulletSound, { initialOutputLevel: 0.4 } );
-    soundManager.addSoundGenerator( bulletSoundClip );
-
-    var missileList = [];
-    var bulletList = [];
-
-    var background = new Plane( {
-      fill: 'white'
-    } );
-    this.addChild( background );
-    let mousePressEvent=null;
-    background.addInputListener( new PressListener( {
-      press: event => {
-        mousePressEvent = event;
-      },
-      release: event=>{
-        mousePressEvent = null;
-      }
-    } ) );
-    const grenadeButtonListener=  new Image(grenadebotImage,{maxHeight:650})
-    grenadeButtonListener.addInputListener( new PressListener( {
-      press: event => {
-         this.removeChild( powerUpScreen )
-        upgradepaused = false
-
-      }
-      
-    } ) );
-   const powerUpScreen = new HBox({
-      children:[grenadeButtonListener,new Image(toxictankImage,{maxHeight:650}),
-     ]
-    });
-    upgradepaused = true
-
-    this.addChild( powerUpScreen )
-    var zombieList = [];
-
-    var wave = 0;
-
-    var highScore = 0;
-
-    let loadedHighScore = localStorage.getItem('highestWave');
-if (loadedHighScore){
-  loadedHighScore = Number.parseInt(loadedHighScore);
-}
-
-    var createAllZombies = () => {
-      wave++;
-
-if (loadedHighScore && wave>loadedHighScore){
-      localStorage.setItem('highestWave',''+wave)
-    }
-    if (!loadedHighScore){
-localStorage.setItem('highestWave',''+wave)      
-    }
-
-      waveText.text = 'wave' + wave;
-
-      const max = Math.max(loadedHighScore,wave);
-
-      hiscoreText.text='High Score: '+max;
-
-      var r = Math.random();
-      var giants = [ -1,
-        r < 0.5 ? 0 : 1,
-        r < 0.25 ? 1 : r < 0.75 ? 2 : 3,
-        r < 0.25 ? 3 : r < 0.75 ? 4 : 5,
-        10
-      ];
-      for ( var k = 0; k < 20; k++ ) {
-        for ( var i = 0; i < 6; i++ ) {
-          var zombie = new Image( zombieImage, {
-            scale: 0.3,
-            y: i * 100 + Math.random() * 50,
-            x: ( k - 19 ) * 100
-          } );
-          zombie.row = k;
-          zombie.life = 20;
-          zombie.maxLife = zombie.life;
-          zombie.attack = 20;
-          zombie.scaleFactor = 1;
-
-          // life bar
-          zombie.addChild(new Rectangle(0,0,100,20,{
-centerX: zombie.width/0.3/2-50,
-centerY: 150,
-            stroke:'black',fill:'black'}));
-
-          // life bar
-          const lifebar = new Rectangle(0,0,100,20,{
-centerX: zombie.width/0.3/2-50,
-centerY: 150,
-            stroke:'black',fill:'rgb(100,255,100)'});
-          zombie.addChild(lifebar);
-          zombie.lifebar = lifebar;
-
-          zombieLayer.addChild( zombie );
-          zombieList.push( zombie );
-        }
-      }
-
-      var numberGiants = giants[ wave ];
-      if ( wave >= 4 ) {
-        numberGiants = 10 + wave * 2;
-      }
-      console.log( numberGiants );
-
-      for ( let i = 0; i < numberGiants; i++ ) {
-        var index = Math.round( Math.random() * zombieList.length );
-        var giant = zombieList[ index ];
-        var c = giant.center;
-        giant.scale( 2 );
-        giant.scaleFactor *= 2;
-        giant.center = c;
-        giant.attack *= 10;
-        giant.life *= 100;
-
-
-        if ( wave >= 5 ) {
-          giant.scale( 2 );
-          giant.scaleFactor *= 2;
-          giant.center = c;
-          giant.attack *= 2;
-          giant.life *= 5;
-        }
-
-        if ( wave >= 10 ) {
-          giant.scale( 2 );
-          giant.scaleFactor *= 2;
-          giant.center = c;
-          giant.attack *= 3;
-          giant.life *= 5;
-        }
-        giant.maxLife= giant.life;
-      }
-    };
-    createAllZombies();
-
-    var wall = new Image( wallImage, {
-      scale: 2,
-      x: 500,
-      y: -100
-
-    } );
-    this.addChild( wall );
-
-    var tankList = [];
-    wall.moveToBack();
-    for ( var i = 0; i < 6; i++ ) {
-      var tank = new Image( tankImage, {
-        scale: new Vector2( -0.25, 0.25 ),
-        left: wall.right,
-        y: i * 100
-      } );
-
-      var addTank = ( tank ) => {
-        const rectangle = new Path( Shape.bounds( tank.localBounds ), {
-          stroke: 'green',
-          lineWidth: 20,
-          visible: false
-        } );
-        tank.addChild( rectangle );
-        tank.addInputListener( new ButtonListener( {
-          fire: function() {
-
-            // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
-
-            tank.selected = !tank.selected;
-            rectangle.visible = tank.selected;
-            console.log( 'dingSound.play' );
-            dingSoundClip.play();
-          }
-        } ) );
-        tank.lifePoints = 30;
-        this.addChild( tank );
-        tank.moveToBack();
-        tankList.push( tank );
-      };
-      addTank( tank );
-
-    }
-
-    var soldierList = [];
-    for ( var k = 0; k < 3; k++ ) {
-      for ( var i = 0; i < 8; i++ ) {
-
-        var soldier = new Image( armySoldierImage, {
-          scale: 0.7,
-          left: tank.right + k * 50,
-          top: i * 75
-        } );
-        var addSoldier = soldier => {
-          const rectangle = new Path( Shape.bounds( soldier.localBounds ), {
-            stroke: 'black',
-            lineWidth: 6,
-            visible: false
-          } );
-          soldier.addChild( rectangle );
-          soldier.addInputListener( new ButtonListener( {
-            fire: function() {
-              console.log( 'hello' );
-
-              // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
-
-              soldier.selected = !soldier.selected;
-              rectangle.visible = soldier.selected;
-              dingSoundClip.play();
             }
-          } ) );
-          soldier.life = 25;
-          this.addChild( soldier );
-          soldierList.push( soldier );
+        });
+        this.addChild(menuButton);
+
+
+        var dingSoundClip = new SoundClip(dingSound, {initialOutputLevel: 0.7});
+        soundManager.addSoundGenerator(dingSoundClip);
+
+        var missileExplodeClip = new SoundClip(missileExplodeSound, {initialOutputLevel: 0.7});
+        soundManager.addSoundGenerator(missileExplodeClip);
+
+        var missileLaunchClip = new SoundClip(missileLaunchSound, {initialOutputLevel: 0.7});
+        soundManager.addSoundGenerator(missileLaunchClip);
+
+        var noClip = new SoundClip(noSound, {initialOutputLevel: 0.7});
+        soundManager.addSoundGenerator(noClip);
+
+        var tankExplodeClip = new SoundClip(tankExplodeSound, {initialOutputLevel: 0.7});
+        soundManager.addSoundGenerator(tankExplodeClip);
+
+        var wallCollapseClip = new SoundClip(wallCollapseSound, {initialOutputLevel: 0.7});
+        soundManager.addSoundGenerator(wallCollapseClip);
+
+        var zombieHitsWallClip = new SoundClip(zombieHitsWallSound, {initialOutputLevel: 0.7});
+        soundManager.addSoundGenerator(zombieHitsWallClip);
+
+        var zombieDeathClip = new SoundClip(zombieDeathSound, {initialOutputLevel: 0.7});
+        soundManager.addSoundGenerator(zombieDeathClip);
+
+
+        var bulletSoundClip = new SoundClip(bulletSound, {initialOutputLevel: 0.4});
+        soundManager.addSoundGenerator(bulletSoundClip);
+
+        var missileList = [];
+        var bulletList = [];
+
+        var background = new Plane({
+            fill: 'white'
+        });
+        this.addChild(background);
+        let mousePressEvent = null;
+        background.addInputListener(new PressListener({
+            press: event => {
+                mousePressEvent = event;
+            },
+            release: event => {
+                mousePressEvent = null;
+            }
+        }));
+        const grenadeButtonListener = new Image(grenadebotImage, {maxHeight: 650})
+        grenadeButtonListener.addInputListener(new PressListener({
+            press: event => {
+                this.removeChild(powerUpScreen)
+                upgradepaused = false
+
+            }
+
+        }));
+        const powerUpScreen = new HBox({
+            children: [grenadeButtonListener, new Image(toxictankImage, {maxHeight: 650}),
+            ]
+        });
+        upgradepaused = true
+
+        this.addChild(powerUpScreen)
+        var zombieList = [];
+
+        var wave = 0;
+
+        var highScore = 0;
+
+        let loadedHighScore = localStorage.getItem('highestWave');
+        if (loadedHighScore) {
+            loadedHighScore = Number.parseInt(loadedHighScore);
+        }
+
+        var createAllZombies = () => {
+            wave++;
+
+            if (loadedHighScore && wave > loadedHighScore) {
+                localStorage.setItem('highestWave', '' + wave)
+            }
+            if (!loadedHighScore) {
+                localStorage.setItem('highestWave', '' + wave)
+            }
+
+            waveText.text = 'wave' + wave;
+
+            const max = Math.max(loadedHighScore, wave);
+
+            hiscoreText.text = 'High Score: ' + max;
+
+            var r = Math.random();
+            var giants = [-1,
+                r < 0.5 ? 0 : 1,
+                r < 0.25 ? 1 : r < 0.75 ? 2 : 3,
+                r < 0.25 ? 3 : r < 0.75 ? 4 : 5,
+                10
+            ];
+            for (var k = 0; k < 20; k++) {
+                for (var i = 0; i < 6; i++) {
+                    var zombie = new Image(zombieImage, {
+                        scale: 0.3,
+                        y: i * 100 + Math.random() * 50,
+                        x: (k - 19) * 100
+                    });
+                    zombie.row = k;
+                    zombie.life = 20;
+                    zombie.maxLife = zombie.life;
+                    zombie.attack = 20;
+                    zombie.scaleFactor = 1;
+
+                    // life bar
+                    zombie.addChild(new Rectangle(0, 0, 100, 20, {
+                        centerX: zombie.width / 0.3 / 2 - 50,
+                        centerY: 150,
+                        stroke: 'black', fill: 'black'
+                    }));
+
+                    // life bar
+                    const lifebar = new Rectangle(0, 0, 100, 20, {
+                        centerX: zombie.width / 0.3 / 2 - 50,
+                        centerY: 150,
+                        stroke: 'black', fill: 'rgb(100,255,100)'
+                    });
+                    zombie.addChild(lifebar);
+                    zombie.lifebar = lifebar;
+
+                    zombieLayer.addChild(zombie);
+                    zombieList.push(zombie);
+                }
+            }
+
+            var numberGiants = giants[wave];
+            if (wave >= 4) {
+                numberGiants = 10 + wave * 2;
+            }
+            console.log(numberGiants);
+
+            for (let i = 0; i < numberGiants; i++) {
+                var index = Math.round(Math.random() * zombieList.length);
+                var giant = zombieList[index];
+                var c = giant.center;
+                giant.scale(2);
+                giant.scaleFactor *= 2;
+                giant.center = c;
+                giant.attack *= 10;
+                giant.life *= 100;
+
+
+                if (wave >= 5) {
+                    giant.scale(2);
+                    giant.scaleFactor *= 2;
+                    giant.center = c;
+                    giant.attack *= 2;
+                    giant.life *= 5;
+                }
+
+                if (wave >= 10) {
+                    giant.scale(2);
+                    giant.scaleFactor *= 2;
+                    giant.center = c;
+                    giant.attack *= 3;
+                    giant.life *= 5;
+                }
+                giant.maxLife = giant.life;
+            }
         };
-        addSoldier( soldier );
-      }
+        createAllZombies();
+
+        var wall = new Image(wallImage, {
+            scale: 2,
+            x: 500,
+            y: -100
+
+        });
+        this.addChild(wall);
+
+        var tankList = [];
+        wall.moveToBack();
+        for (var i = 0; i < 6; i++) {
+            var tank = new Image(tankImage, {
+                scale: new Vector2(-0.25, 0.25),
+                left: wall.right,
+                y: i * 100
+            });
+
+            var addTank = (tank) => {
+                const rectangle = new Path(Shape.bounds(tank.localBounds), {
+                    stroke: 'green',
+                    lineWidth: 20,
+                    visible: false
+                });
+                tank.addChild(rectangle);
+                tank.addInputListener(new ButtonListener({
+                    fire: function () {
+
+                        // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
+
+                        tank.selected = !tank.selected;
+                        rectangle.visible = tank.selected;
+                        console.log('dingSound.play');
+                        dingSoundClip.play();
+                    }
+                }));
+                tank.lifePoints = 30;
+                this.addChild(tank);
+                tank.moveToBack();
+                tankList.push(tank);
+            };
+            addTank(tank);
+
+        }
+
+        var soldierList = [];
+        for (var k = 0; k < 3; k++) {
+            for (var i = 0; i < 8; i++) {
+
+                var soldier = new Image(armySoldierImage, {
+                    scale: 0.7,
+                    left: tank.right + k * 50,
+                    top: i * 75
+                });
+                var addSoldier = soldier => {
+                    const rectangle = new Path(Shape.bounds(soldier.localBounds), {
+                        stroke: 'black',
+                        lineWidth: 6,
+                        visible: false
+                    });
+                    soldier.addChild(rectangle);
+                    soldier.addInputListener(new ButtonListener({
+                        fire: function () {
+                            console.log('hello');
+
+                            // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
+
+                            soldier.selected = !soldier.selected;
+                            rectangle.visible = soldier.selected;
+                            dingSoundClip.play();
+                        }
+                    }));
+                    soldier.life = 25;
+                    this.addChild(soldier);
+                    soldierList.push(soldier);
+                };
+                addSoldier(soldier);
+            }
+        }
+
+        var overlapsNextRow = function (zombie) {
+            for (let i = 0; i < zombieList.length; i++) {
+                const z = zombieList[i];
+                if (z.row === zombie.row + 1) {
+                    if (zombie.right > z.left) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+        var timeWallHasBeenEaten = 0;
+
+        var isGameOver = false;
+
+        this.stepTown = dt => {
+
+
+            if (isGameOver || paused || upgradepaused) {
+                return;
+            }
+
+
+            if (mousePressEvent) {
+                // Fire missiles from the tanks
+                for (let i = 0; i < tankList.length; i++) {
+                    const selectedTank = tankList[i];
+
+                    // Simulate a cooldown.  No bullet chains
+                    if (selectedTank.selected && Math.random() < 0.1) {
+                        var missile = new Image(missileImage, {
+                            center: selectedTank.center,
+                            //rotation: -Math.PI/2
+                        });
+                        this.addChild(missile);
+                        const target = this.globalToLocalPoint(mousePressEvent.pointer.point);
+
+                        const vector = target.minus(missile.center).normalized().times(30)
+                        missile.velocityVector = vector;
+                        missile.strength = 75;// goes through about 3-4 zombies
+                        missile.rotation = +Math.PI / 2 + vector.getAngle();
+                        missileList.push(missile);
+                        missileLaunchClip.play();
+                    }
+                }
+
+                // Fire bullets from the soldiers
+                for (let i = 0; i < soldierList.length; i++) {
+                    const selectedSoldier = soldierList[i];
+                    if (selectedSoldier.selected && Math.random() < 0.1) {
+
+                        // Each soldier has 2 guns, so 2 bullets come out at the same time
+                        for (var k = 0; k < 2; k++) {
+
+                            var bullet = new Circle(7.5, {
+                                    fill: 'black',
+                                    center: selectedSoldier.center.plusXY(Math.random() * 200 - 100, Math.random() * 20)
+                                })
+                            ;
+                            this.addChild(bullet);
+                            const target = this.globalToLocalPoint(mousePressEvent.pointer.point);
+                            const vector = target.minus(bullet.center).normalized().times(20)
+                            bullet.velocityVector = vector;
+                            bullet.strength = 25; // should be absorbed when hitting one small zombie
+                            bulletList.push(bullet);
+
+                            bulletSoundClip.play();
+                        }
+
+
+                    }
+                }
+
+            }
+
+            for (let i = 0; i < zombieList.length; i++) {
+                const zombie = zombieList[i];
+                if (zombie.life <= 0) {
+                    zombieLayer.removeChild(zombie);
+                    zombieList.splice(i, 1);
+                    zombieDeathClip.play();
+
+                    if (zombieList.length <= 5) {
+                        createAllZombies();
+                    }
+                    break;
+                }
+
+                for (let j = 0; j < tankList.length; j++) {
+                    const tank = tankList[j];
+                    if (tank.bounds.intersectsBounds(zombie.bounds)) {
+                        tank.lifePoints = tank.lifePoints - dt * 2 * zombie.attack / 20;
+                    }
+                    if (tank.lifePoints < 0) {
+                        tank.visible = false;
+                        tankList.splice(j, 1);
+                        j--;
+                        tankExplodeClip.play();
+                    }
+                }
+
+                for (let j = 0; j < soldierList.length; j++) {
+                    const soldier = soldierList[j];
+                    if (soldier.bounds.intersectsBounds(zombie.bounds)) {
+                        soldier.life = soldier.life - 3 * dt * (zombie.attack + 1) / 20;
+
+                        if (soldier.life <= 0) {
+                            this.removeChild(soldier);
+                            soldierList.splice(j, 1);
+                            j--;
+                            noClip.play();
+
+                            var newZombie = new Image(zombieImage, {
+                                center: soldier.center,
+                                scale: 0.3
+                            });
+                            newZombie.scaleFactor = 1;
+                            newZombie.life = 20;
+                            newZombie.attack = 20;
+                            this.addChild(newZombie);
+                            zombieList.push(newZombie);
+                        }
+
+                    }
+                }
+                // console.log(soldierList.map(s => s.life));
+
+                if (wall.visible) {
+                    if (zombie.right < wall.left + 30) {
+                        zombie.translate(ZOMBIE_SPEED * 2 * Math.random() / zombie.scaleFactor, 0);
+                    }
+                    if (zombie.right >= wall.left + 30) {
+                        timeWallHasBeenEaten += dt * zombie.attack / 20;
+
+                        if (!zombieHitsWallClip.isPlaying) {
+                            zombieHitsWallClip.play();
+                        }
+                    }
+                } else {
+                    zombie.translate(ZOMBIE_SPEED * 2 * Math.random() / zombie.scaleFactor, 0);
+
+
+                    if (zombie.left >= this.layoutBounds.right) {
+                        const gameOverText = new Text('GAME OVER', {
+                            fontSize: 602,
+                            maxWidth: this.layoutBounds.width,
+                            center: this.layoutBounds.center
+                        });
+                        this.addChild(gameOverText);
+                        isGameOver = true;
+                    }
+                }
+            }
+
+            if (timeWallHasBeenEaten > 40) {
+                if (wall.visible) {
+                    wallCollapseClip.play();
+                }
+                wall.visible = false;
+            }
+
+
+            ///MISSILES
+            for (let y = 0; y < missileList.length; y++) {
+                var missile = missileList[y];
+                // let vector = missile.target.minus( missile.center ).normalized().times( 10 );
+
+                for (let i = 0; i < zombieList.length; i++) {
+                    const zombie = zombieList[i];
+                    if (zombie.bounds.intersectsBounds(missile.bounds)) {
+                        zombie.life = zombie.life - 0.7;
+                        zombie.lifebar.setRectWidth(100 * zombie.life / zombie.maxLife);
+                        missile.strength = missile.strength - 1;
+                    }
+                }
+
+                missile.center = missile.center.plus(missile.velocityVector);
+
+                if (missile.strength <= 0) {
+                    this.removeChild(missile);
+                    missileList.splice(y, 1);
+                    missileExplodeClip.play();
+                    y--;
+                }
+            }
+
+            ///BULLETS
+            for (let y = 0; y < bulletList.length; y++) {
+                var bullet = bulletList[y];
+                //let vector = bullet.target.minus( bullet.center ).normalized().times( 20 );
+                const vector = bullet.velocityVector;
+
+
+                for (let i = 0; i < zombieList.length; i++) {
+                    const zombie = zombieList[i];
+                    if (zombie.bounds.intersectsBounds(bullet.bounds)) {
+                        zombie.life = zombie.life - bullet.strength;
+                        bullet.strength = bullet.strength - 25;
+
+                        console.log(bullet.strength);
+                    }
+                }
+
+                bullet.center = bullet.center.plus(vector);
+
+                if (bullet.strength <= 0) {
+                    this.removeChild(bullet);
+                    bulletList.splice(y, 1);
+                    y--;
+                }
+            }
+
+            var allRight = true;
+            var minX = Number.MAX_VALUE;
+            zombieList.forEach(function (z) {
+                if (z.center.x < minX) {
+                    minX = z.center.x;
+                }
+                if (z.center.x < 800) {
+                    allRight = false;
+                }
+            });
+            if (allRight) {
+                createAllZombies();
+            }
+        };
+
+
+        background.moveToBack();
     }
 
-    var overlapsNextRow = function( zombie ) {
-      for ( let i = 0; i < zombieList.length; i++ ) {
-        const z = zombieList[ i ];
-        if ( z.row === zombie.row + 1 ) {
-          if ( zombie.right > z.left ) {
-            return true;
-          }
-        }
-      }
-      return false;
-    };
-
-    var timeWallHasBeenEaten = 0;
-
-    var isGameOver=false;
-
-    this.stepTown = dt => {
-
-
-if (isGameOver || paused || upgradepaused ){
-  return;
+    /**
+     * Notify listeners of the step phase.
+     * @param {number} dt - in seconds
+     * @public
+     */
+    step(dt) {
+        // this.steppedEmitter.emit();
+        this.stepTown(dt);
+    }
 }
 
-
-
-           
-        if (mousePressEvent ){
-        // Fire missiles from the tanks
-        for ( let i = 0; i < tankList.length; i++ ) {
-          const selectedTank = tankList[ i ];
-
-          // Simulate a cooldown.  No bullet chains
-          if ( selectedTank.selected && Math.random()<0.1) {
-            var missile = new Image( missileImage, {
-              center: selectedTank.center,
-              //rotation: -Math.PI/2
-            } );
-            this.addChild( missile );
-            const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
-
-            const vector = target.minus( missile.center ).normalized().times( 30 )
-            missile.velocityVector = vector;
-            missile.strength=75;// goes through about 3-4 zombies
-            missile.rotation = +Math.PI/2 + vector.getAngle();
-            missileList.push( missile );
-            missileLaunchClip.play();
-          }
-        }
-
-        // Fire bullets from the soldiers
-        for ( let i = 0; i < soldierList.length; i++ ) {
-          const selectedSoldier = soldierList[ i ];
-          if ( selectedSoldier.selected && Math.random()<0.1) {
-
-            // Each soldier has 2 guns, so 2 bullets come out at the same time
-            for ( var k = 0; k < 2; k++ ) {
-
-              var bullet = new Circle( 7.5, {
-                  fill: 'black',
-                  center: selectedSoldier.center.plusXY( Math.random() * 200 - 100, Math.random() * 20 )
-                } )
-              ;
-              this.addChild( bullet );
-              const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
-              const vector = target.minus( bullet.center ).normalized().times( 20 )
-            bullet.velocityVector = vector;
-              bullet.strength=25; // should be absorbed when hitting one small zombie
-              bulletList.push( bullet );
-
-              bulletSoundClip.play();
-            }
-
-
-          }
-        }
-
-}
-
-      for ( let i = 0; i < zombieList.length; i++ ) {
-        const zombie = zombieList[ i ];
-        if ( zombie.life <= 0 ) {
-          zombieLayer.removeChild( zombie );
-          zombieList.splice( i, 1 );
-          zombieDeathClip.play();
-
-          if ( zombieList.length <= 5 ) {
-            createAllZombies();
-          }
-          break;
-        }
-
-        for ( let j = 0; j < tankList.length; j++ ) {
-          const tank = tankList[ j ];
-          if ( tank.bounds.intersectsBounds( zombie.bounds ) ) {
-            tank.lifePoints = tank.lifePoints - dt * 2 * zombie.attack / 20;
-          }
-          if ( tank.lifePoints < 0 ) {
-            tank.visible = false;
-            tankList.splice( j, 1 );
-            j--;
-            tankExplodeClip.play();
-          }
-        }
-
-        for ( let j = 0; j < soldierList.length; j++ ) {
-          const soldier = soldierList[ j ];
-          if ( soldier.bounds.intersectsBounds( zombie.bounds ) ) {
-            soldier.life = soldier.life - 3 * dt * ( zombie.attack + 1 ) / 20;
-
-            if ( soldier.life <= 0 ) {
-              this.removeChild( soldier );
-              soldierList.splice( j, 1 );
-              j--;
-              noClip.play();
-
-              var newZombie = new Image( zombieImage, {
-                center: soldier.center,
-                scale: 0.3
-              } );
-              newZombie.scaleFactor = 1;
-              newZombie.life = 20;
-              newZombie.attack = 20;
-              this.addChild( newZombie );
-              zombieList.push( newZombie );
-            }
-
-          }
-        }
-        // console.log(soldierList.map(s => s.life));
-
-        if ( wall.visible ) {
-          if ( zombie.right < wall.left + 30  ) {
-            zombie.translate( ZOMBIE_SPEED * 2 * Math.random() / zombie.scaleFactor, 0 );
-          }
-          if ( zombie.right >= wall.left + 30 ) {
-            timeWallHasBeenEaten += dt * zombie.attack / 20;
-
-            if ( !zombieHitsWallClip.isPlaying ) {
-              zombieHitsWallClip.play();
-            }
-          }
-        }
-        else {
-          zombie.translate( ZOMBIE_SPEED * 2 * Math.random() / zombie.scaleFactor, 0 );
-
-
-          if (zombie.left>=this.layoutBounds.right ){
-            const gameOverText = new Text('GAME OVER',{fontSize:602,
-              maxWidth:this.layoutBounds.width,
-              center: this.layoutBounds.center});
-            this.addChild(gameOverText);
-            isGameOver=true;
-          }
-        }
-      }
-
-      if ( timeWallHasBeenEaten > 40 ) {
-        if ( wall.visible ) {
-          wallCollapseClip.play();
-        }
-        wall.visible = false;
-      }
-
-
-      ///MISSILES
-      for ( let y = 0; y < missileList.length; y++ ) {
-        var missile = missileList[ y ];
-        // let vector = missile.target.minus( missile.center ).normalized().times( 10 );
-
-        for ( let i = 0; i < zombieList.length; i++ ) {
-          const zombie = zombieList[ i ];
-          if ( zombie.bounds.intersectsBounds( missile.bounds ) ) {
-            zombie.life = zombie.life - 0.7;
-            zombie.lifebar.setRectWidth(100*zombie.life/zombie.maxLife);
-            missile.strength=missile.strength-1;
-          }
-        }
-
-        missile.center = missile.center.plus( missile.velocityVector );
-
-        if ( missile.strength<=0 ) {
-          this.removeChild( missile );
-          missileList.splice( y, 1 );
-          missileExplodeClip.play();
-          y--;
-        }
-      }
-
-      ///BULLETS
-      for ( let y = 0; y < bulletList.length; y++ ) {
-        var bullet = bulletList[ y ];
-        //let vector = bullet.target.minus( bullet.center ).normalized().times( 20 );
-        const vector = bullet.velocityVector;
-
-
-        for ( let i = 0; i < zombieList.length; i++ ) {
-          const zombie = zombieList[ i ];
-          if ( zombie.bounds.intersectsBounds( bullet.bounds ) ) {
-            zombie.life = zombie.life - bullet.strength;
-            bullet.strength = bullet.strength - 25;
-
-            console.log(bullet.strength);
-          }
-        }
-
-        bullet.center = bullet.center.plus( vector );
-
-        if ( bullet.strength <= 0 ) {
-          this.removeChild( bullet );
-          bulletList.splice( y, 1 );
-          y--;
-        }
-      }
-
-      var allRight = true;
-      var minX = Number.MAX_VALUE;
-      zombieList.forEach( function( z ) {
-        if ( z.center.x < minX ) {
-          minX = z.center.x;
-        }
-        if ( z.center.x < 800 ) {
-          allRight = false;
-        }
-      } );
-      if ( allRight ) {
-        createAllZombies();
-      }
-    };
-
-
-    background.moveToBack();
-  }
-
-  /**
-   * Notify listeners of the step phase.
-   * @param {number} dt - in seconds
-   * @public
-   */
-  step( dt ) {
-    // this.steppedEmitter.emit();
-    this.stepTown( dt );
-  }
-}
-
-saveTheTown.register( 'SaveTheTownScreenView', SaveTheTownScreenView );
+saveTheTown.register('SaveTheTownScreenView', SaveTheTownScreenView);
 export default SaveTheTownScreenView;
