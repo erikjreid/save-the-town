@@ -38,7 +38,7 @@ import saveTheTown from './saveTheTown.js';
 import toxictankImage from '../images/toxictank_jpg.js';
 import grenadebotImage from '../images/grenadebot_jpg.js';
 import HBox from '../../scenery/js/nodes/HBox.js';
-import grenadetankbattleImage from '../images/grenadebot_jpg.js';
+import grenadetankbattleImage from '../images/grenadetankbattleimage_jpg.js';
 
 
 import dingSound from '../sounds/ding_mp3.js';
@@ -156,17 +156,26 @@ class SaveTheTownScreenView extends ScreenView {
                 mousePressEvent = null;
             }
         }));
-        const grenadeButtonListener = new Image(grenadebotImage, {maxHeight: 650})
-        grenadeButtonListener.addInputListener(new PressListener({
+        const grenadePowerUpButton = new Image(grenadebotImage, {maxHeight: 650})
+        grenadePowerUpButton.addInputListener(new PressListener({
             press: event => {
-                this.removeChild(powerUpScreen)
-                upgradepaused = false
+                this.removeChild(powerUpScreen);
+                upgradepaused = false;
 
+                tankList.forEach(tank=>{
+                    tank.setImage(grenadetankbattleImage);
+                });
             }
-
+        }));
+        const toxicPowerUpButton = new Image(toxictankImage, {maxHeight: 650});
+        toxicPowerUpButton.addInputListener(new PressListener({
+            press: event => {
+                this.removeChild(powerUpScreen);
+                upgradepaused = false;
+            }
         }));
         const powerUpScreen = new HBox({
-            children: [grenadeButtonListener, new Image(toxictankImage, {maxHeight: 650}),
+            children: [grenadePowerUpButton, toxicPowerUpButton,
             ]
         });
         upgradepaused = true
