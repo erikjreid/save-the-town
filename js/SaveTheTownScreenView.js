@@ -143,6 +143,7 @@ class SaveTheTownScreenView extends ScreenView {
 
     var missileList = [];
     var bulletList = [];
+    var explosionList = [];
 
     var background = new Plane( {
       fill: 'white'
@@ -406,7 +407,7 @@ class SaveTheTownScreenView extends ScreenView {
             this.addChild( missile );
             const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
 
-            const vector = target.minus( missile.center ).normalized().times( 30 * 0.1 )
+            const vector = target.minus( missile.center ).normalized().times( 30 )
             missile.velocityVector = vector;
             missile.strength = 75;// goes through about 3-4 zombies
             missile.rotation = vector.getAngle() + Math.PI;
@@ -554,8 +555,27 @@ class SaveTheTownScreenView extends ScreenView {
           missileList.splice( y, 1 );
           missileExplodeClip.play();
           y--;
+
+          const explosion = new Image( explosionImage, {
+            center: missile.center,
+            scale: 0.25
+          } )
+          explosion.remainingTime = 1;
+          explosionList.push( explosion );
+          this.addChild( explosion );
         }
       }
+
+      // EXPLOSIONS
+      explosionList.forEach( explosion => {
+        explosion.remainingTime = explosion.remainingTime - dt;
+        if ( explosion.remainingTime <= 0 ) {
+          setTimeout( () => {
+            this.removeChild( explosion );
+            explosionList.splice( explosionList.indexOf( explosion ), 1 );
+          }, 0 )
+        }
+      } );
 
       ///BULLETS
       for ( let y = 0; y < bulletList.length; y++ ) {
