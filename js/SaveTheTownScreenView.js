@@ -401,15 +401,15 @@ class SaveTheTownScreenView extends ScreenView {
                     if (selectedTank.selected && Math.random() < 0.1) {
                         var missile = new Image(grenadebotbombImage, {
                             center: selectedTank.center,
-                            //rotation: -Math.PI/2
+                            scale: 0.27
                         });
                         this.addChild(missile);
                         const target = this.globalToLocalPoint(mousePressEvent.pointer.point);
 
-                        const vector = target.minus(missile.center).normalized().times(30)
+                        const vector = target.minus(missile.center).normalized().times(30*0.1)
                         missile.velocityVector = vector;
                         missile.strength = 75;// goes through about 3-4 zombies
-                        missile.rotation = +Math.PI / 2 + vector.getAngle();
+                        missile.rotation =  vector.getAngle()+Math.PI;
                         missileList.push(missile);
                         missileLaunchClip.play();
                     }
