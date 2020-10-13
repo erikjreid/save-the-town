@@ -40,7 +40,7 @@ import grenadebotImage from '../images/grenadebot_jpg.js';
 import HBox from '../../scenery/js/nodes/HBox.js';
 import grenadetankbattleImage from '../images/grenadetankbattleimage_jpg.js';
 import grenadebotbombImage from '../images/grenadebotbomb_jpg.js';
-
+import explosionImage from '../images/explosion_jpg.js';
 
 import dingSound from '../sounds/ding_mp3.js';
 import missileExplodeSound from '../sounds/missile-explode_mp3.js';
@@ -547,6 +547,7 @@ class SaveTheTownScreenView extends ScreenView {
 
                 missile.center = missile.center.plus(missile.velocityVector);
 
+                // Missile explodes
                 if (missile.strength <= 0) {
                     this.removeChild(missile);
                     missileList.splice(y, 1);
