@@ -568,6 +568,15 @@ class SaveTheTownScreenView extends ScreenView {
 
       // EXPLOSIONS
       explosionList.forEach( explosion => {
+
+        for ( let i = 0; i < zombieList.length; i++ ) {
+          const zombie = zombieList[ i ];
+          if ( zombie.bounds.intersectsBounds( explosion.bounds ) ) {
+            zombie.life = zombie.life - 0.8; // 0.5 seconds alive in explosion. 0.8 damage per second * 1 second = 20 damage
+            zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
+          }
+        }
+
         explosion.remainingTime = explosion.remainingTime - dt;
         if ( explosion.remainingTime <= 0 ) {
           setTimeout( () => {
