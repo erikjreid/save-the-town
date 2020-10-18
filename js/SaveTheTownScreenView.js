@@ -542,6 +542,9 @@ class SaveTheTownScreenView extends ScreenView {
           const zombie = zombieList[ i ];
           if ( zombie.bounds.intersectsBounds( missile.bounds ) ) {
             zombie.life = zombie.life - 0.7;
+            if ( zombie.life < 0 ) {
+              zombie.life = 0;
+            }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
             missile.strength = missile.strength - 1;
           }
@@ -573,6 +576,9 @@ class SaveTheTownScreenView extends ScreenView {
           const zombie = zombieList[ i ];
           if ( zombie.bounds.intersectsBounds( explosion.bounds ) ) {
             zombie.life = zombie.life - 0.8; // 0.5 seconds alive in explosion. 0.8 damage per second * 1 second = 20 damage
+            if ( zombie.life < 0 ) {
+              zombie.life = 0;
+            }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
           }
         }
