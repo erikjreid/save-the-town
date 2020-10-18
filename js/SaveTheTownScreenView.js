@@ -570,6 +570,9 @@ class SaveTheTownScreenView extends ScreenView {
       }
 
       // EXPLOSIONS
+
+      const explosionsToRemove = [];
+
       explosionList.forEach( explosion => {
 
         for ( let i = 0; i < zombieList.length; i++ ) {
@@ -585,12 +588,14 @@ class SaveTheTownScreenView extends ScreenView {
 
         explosion.remainingTime = explosion.remainingTime - dt;
         if ( explosion.remainingTime <= 0 ) {
-          setTimeout( () => {
-            this.removeChild( explosion );
-            explosionList.splice( explosionList.indexOf( explosion ), 1 );
-          }, 0 )
+          explosionsToRemove.push( explosion );
         }
       } );
+
+      explosionsToRemove.forEach(explosion=>{
+        this.removeChild( explosion );
+        explosionList.splice( explosionList.indexOf( explosion ), 1 );
+      });
 
       ///BULLETS
       for ( let y = 0; y < bulletList.length; y++ ) {
