@@ -546,7 +546,7 @@ class SaveTheTownScreenView extends ScreenView {
               zombie.life = 0;
             }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
-            missile.strength = missile.strength - 1;
+            missile.strength = 0;
           }
         }
 
