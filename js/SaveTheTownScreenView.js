@@ -343,6 +343,9 @@ class SaveTheTownScreenView extends ScreenView {
           left: tank.right + k * 50,
           top: i * 75
         } );
+
+        soldier.ammo = 50;
+
         var addSoldier = soldier => {
           const rectangle = new Path( Shape.bounds( soldier.localBounds ), {
             stroke: 'black',
@@ -419,16 +422,15 @@ class SaveTheTownScreenView extends ScreenView {
         // Fire bullets from the soldiers
         for ( let i = 0; i < soldierList.length; i++ ) {
           const selectedSoldier = soldierList[ i ];
-          if ( selectedSoldier.selected && Math.random() < 0.1 ) {
+          if ( selectedSoldier.selected && Math.random() < 0.1 && selectedSoldier.ammo >= 2 ) {
 
             // Each soldier has 2 guns, so 2 bullets come out at the same time
             for ( var k = 0; k < 2; k++ ) {
 
               var bullet = new Circle( 7.5, {
-                  fill: 'black',
-                  center: selectedSoldier.center.plusXY( Math.random() * 200 - 100, Math.random() * 20 )
-                } )
-              ;
+                fill: 'black',
+                center: selectedSoldier.center.plusXY( Math.random() * 200 - 100, Math.random() * 20 )
+              } );
               this.addChild( bullet );
               const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
               const vector = target.minus( bullet.center ).normalized().times( 20 )
@@ -437,12 +439,15 @@ class SaveTheTownScreenView extends ScreenView {
               bulletList.push( bullet );
 
               bulletSoundClip.play();
+
+              selectedSoldier.ammo = selectedSoldier.ammo - 2;
+
+              if ( selectedSoldier.ammo <= 0 ) {
+                selectedSoldier.reloadTime = 5; // reload in 5 seconds
+              }
             }
-
-
           }
         }
-
       }
 
       for ( let i = 0; i < zombieList.length; i++ ) {
@@ -525,6 +530,17 @@ class SaveTheTownScreenView extends ScreenView {
         }
       }
 
+      for ( let j = 0; j < soldierList.length; j++ ) {
+        const soldier = soldierList[ j ];
+        if ( soldier.ammo <= 0 && soldier.reloadTime > 0 ) {
+          soldier.reloadTime = soldier.reloadTime - dt;
+
+          if ( soldier.reloadTime <= 0 ) {
+            soldier.ammo=50
+          }
+        }
+      }
+
       if ( timeWallHasBeenEaten > 40 ) {
         if ( wall.visible ) {
           wallCollapseClip.play();
@@ -592,10 +608,10 @@ class SaveTheTownScreenView extends ScreenView {
         }
       } );
 
-      explosionsToRemove.forEach(explosion=>{
+      explosionsToRemove.forEach( explosion => {
         this.removeChild( explosion );
         explosionList.splice( explosionList.indexOf( explosion ), 1 );
-      });
+      } );
 
       ///BULLETS
       for ( let y = 0; y < bulletList.length; y++ ) {
