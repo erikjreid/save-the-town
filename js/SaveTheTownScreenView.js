@@ -36,6 +36,7 @@ import wallImage from '../images/wall_png.js';
 import zombieImage from '../images/zombie_png.js';
 import saveTheTown from './saveTheTown.js';
 import toxictankImage from '../images/toxictank_jpg.js';
+import toxicTankBattleImage from '../images/toxicTankBattleImage_png.js';
 import grenadebotImage from '../images/grenadebot_jpg.js';
 import HBox from '../../scenery/js/nodes/HBox.js';
 import grenadetankbattleImage from '../images/grenadetankbattleimage_jpg.js';
@@ -80,8 +81,7 @@ class SaveTheTownScreenView extends ScreenView {
     hiscoreText.top = waveText.bottom;
 
     let paused = false;
-    let upgradepaused = false
-    ;
+    let upgradepaused = false;
     const zombieLayer = new Node();
     this.addChild( zombieLayer );
 
@@ -158,9 +158,11 @@ class SaveTheTownScreenView extends ScreenView {
         mousePressEvent = null;
       }
     } ) );
+    let tankType = 'normal';
     const grenadePowerUpButton = new Image( grenadebotImage, { maxHeight: 650 } )
     grenadePowerUpButton.addInputListener( new PressListener( {
       press: event => {
+        tankType = 'grenade';
         this.removeChild( powerUpScreen );
         upgradepaused = false;
 
@@ -174,13 +176,19 @@ class SaveTheTownScreenView extends ScreenView {
     const toxicPowerUpButton = new Image( toxictankImage, { maxHeight: 650 } );
     toxicPowerUpButton.addInputListener( new PressListener( {
       press: event => {
+        tankType = 'toxic';
         this.removeChild( powerUpScreen );
         upgradepaused = false;
+
+        tankList.forEach( tank => {
+          tank.setImage( toxicTankBattleImage );
+          tank.scale( -1, 1 )
+          tank.translate( -750, 0 )
+        } );
       }
     } ) );
     const powerUpScreen = new HBox( {
-      children: [ grenadePowerUpButton, toxicPowerUpButton,
-      ]
+      children: [ grenadePowerUpButton, toxicPowerUpButton ]
     } );
     upgradepaused = true
 
@@ -536,7 +544,7 @@ class SaveTheTownScreenView extends ScreenView {
           soldier.reloadTime = soldier.reloadTime - dt;
 
           if ( soldier.reloadTime <= 0 ) {
-            soldier.ammo=50
+            soldier.ammo = 50
           }
         }
       }
@@ -579,7 +587,16 @@ class SaveTheTownScreenView extends ScreenView {
             center: missile.center,
             scale: 0.25
           } )
-          explosion.remainingTime = 1;
+          if ( tankType === 'grenade' ) {
+            explosion.remainingTime = 0.1;
+          }
+          else if ( tankType === 'toxic' ) {
+            explosion.remainingTime = 5;
+          }
+          else {
+            explosion.remainingTime = 1;
+          }
+
           explosionList.push( explosion );
           this.addChild( explosion );
         }
@@ -594,7 +611,19 @@ class SaveTheTownScreenView extends ScreenView {
         for ( let i = 0; i < zombieList.length; i++ ) {
           const zombie = zombieList[ i ];
           if ( zombie.bounds.intersectsBounds( explosion.bounds ) ) {
-            zombie.life = zombie.life - 0.8; // 0.5 seconds alive in explosion. 0.8 damage per second * 1 second = 20 damage
+
+            let damage = 0;
+            if ( tankType === 'grenade' ) {
+              damage = 4;
+            }
+            else if ( tankType === 'toxic' ) {
+              damage = 0.3;
+            }
+            else {
+              damage = 0.8;
+            }
+
+            zombie.life = zombie.life - damage; // 0.5 seconds alive in explosion. 0.8 damage per second * 1 second = 20 damage
             if ( zombie.life < 0 ) {
               zombie.life = 0;
             }
