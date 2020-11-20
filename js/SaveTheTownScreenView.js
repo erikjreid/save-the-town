@@ -41,6 +41,7 @@ import grenadebotImage from '../images/grenadebot_jpg.js';
 import HBox from '../../scenery/js/nodes/HBox.js';
 import grenadetankbattleImage from '../images/grenadetankbattleimage_jpg.js';
 import grenadebotbombImage from '../images/grenadebotbomb_jpg.js';
+import toxicTankMissileImage from '../images/toxic-tank-missile_png.js';
 import explosionImage from '../images/explosion_jpg.js';
 
 import dingSound from '../sounds/ding_mp3.js';
@@ -411,7 +412,10 @@ class SaveTheTownScreenView extends ScreenView {
 
           // Simulate a cooldown.  No bullet chains
           if ( selectedTank.selected && Math.random() < 0.1 ) {
-            var missile = new Image( grenadebotbombImage, {
+            var missile = new Image(
+              tankType === 'grenade' ? grenadebotbombImage:
+              tankType==='toxic' ? toxicTankMissileImage:
+              missileImage, {
               center: selectedTank.center,
               scale: 0.27
             } );
