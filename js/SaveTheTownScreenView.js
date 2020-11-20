@@ -43,6 +43,7 @@ import grenadetankbattleImage from '../images/grenadetankbattleimage_jpg.js';
 import grenadebotbombImage from '../images/grenadebotbomb_jpg.js';
 import toxicTankMissileImage from '../images/toxic-tank-missile_png.js';
 import explosionImage from '../images/explosion_jpg.js';
+import toxicTankExplosionImage from '../images/toxic-tank-explosion_png.js';
 
 import dingSound from '../sounds/ding_mp3.js';
 import missileExplodeSound from '../sounds/missile-explode_mp3.js';
@@ -413,12 +414,12 @@ class SaveTheTownScreenView extends ScreenView {
           // Simulate a cooldown.  No bullet chains
           if ( selectedTank.selected && Math.random() < 0.1 ) {
             var missile = new Image(
-              tankType === 'grenade' ? grenadebotbombImage:
-              tankType==='toxic' ? toxicTankMissileImage:
+              tankType === 'grenade' ? grenadebotbombImage :
+              tankType === 'toxic' ? toxicTankMissileImage :
               missileImage, {
-              center: selectedTank.center,
-              scale: 0.27
-            } );
+                center: selectedTank.center,
+                scale: 0.27
+              } );
             this.addChild( missile );
             const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
 
@@ -584,25 +585,32 @@ class SaveTheTownScreenView extends ScreenView {
         if ( missile.strength <= 0 ) {
           this.removeChild( missile );
           missileList.splice( y, 1 );
+
           missileExplodeClip.play();
           y--;
 
-          const explosion = new Image( explosionImage, {
-            center: missile.center,
-            scale: 0.25
-          } )
-          if ( tankType === 'grenade' ) {
-            explosion.remainingTime = 0.1;
-          }
-          else if ( tankType === 'toxic' ) {
-            explosion.remainingTime = 5;
-          }
-          else {
-            explosion.remainingTime = 1;
+          if ( tankType === 'grenade' || tankType === 'toxic' ) {
+            const explosion = new Image( tankType === 'grenade' ? explosionImage :
+                                         tankType === 'toxic' ? toxicTankExplosionImage :
+                                         explosionImage, {
+              center: missile.center,
+              scale: 0.25
+            } )
+            if ( tankType === 'grenade' ) {
+              explosion.remainingTime = 0.1;
+            }
+            else if ( tankType === 'toxic' ) {
+              explosion.remainingTime = 5;
+            }
+            else {
+              explosion.remainingTime = 1;
+            }
+
+            explosionList.push( explosion );
+            this.addChild( explosion );
           }
 
-          explosionList.push( explosion );
-          this.addChild( explosion );
+
         }
       }
 
