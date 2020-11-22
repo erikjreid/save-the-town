@@ -165,7 +165,7 @@ class SaveTheTownScreenView extends ScreenView {
     grenadePowerUpButton.addInputListener( new PressListener( {
       press: event => {
         tankType = 'grenade';
-        this.removeChild( powerUpScreen );
+        this.removeChild( tankPowerUpScreen );
         upgradepaused = false;
 
         tankList.forEach( tank => {
@@ -179,7 +179,7 @@ class SaveTheTownScreenView extends ScreenView {
     toxicPowerUpButton.addInputListener( new PressListener( {
       press: event => {
         tankType = 'toxic';
-        this.removeChild( powerUpScreen );
+        this.removeChild( tankPowerUpScreen );
         upgradepaused = false;
 
         tankList.forEach( tank => {
@@ -189,12 +189,10 @@ class SaveTheTownScreenView extends ScreenView {
         } );
       }
     } ) );
-    const powerUpScreen = new HBox( {
+    const tankPowerUpScreen = new HBox( {
       children: [ grenadePowerUpButton, toxicPowerUpButton ]
     } );
-    upgradepaused = true
 
-    this.addChild( powerUpScreen )
     var zombieList = [];
 
     var wave = 0;
@@ -206,8 +204,13 @@ class SaveTheTownScreenView extends ScreenView {
       loadedHighScore = Number.parseInt( loadedHighScore );
     }
 
-    var createAllZombies = () => {
+    const startNextWave = () => {
       wave++;
+
+      if ( wave === 2 ) {
+        upgradepaused = true;
+        this.addChild( tankPowerUpScreen )
+      }
 
       if ( loadedHighScore && wave > loadedHighScore ) {
         localStorage.setItem( 'highestWave', '' + wave )
@@ -298,7 +301,9 @@ class SaveTheTownScreenView extends ScreenView {
         giant.maxLife = giant.life;
       }
     };
-    createAllZombies();
+
+    // start the first wave
+    startNextWave();
 
     var wall = new Image( wallImage, {
       scale: 2,
@@ -470,8 +475,9 @@ class SaveTheTownScreenView extends ScreenView {
           zombieList.splice( i, 1 );
           zombieDeathClip.play();
 
+          // the next wave starts even while there are zombies from the previous wave
           if ( zombieList.length <= 5 ) {
-            createAllZombies();
+            startNextWave();
           }
           break;
         }
@@ -680,19 +686,20 @@ class SaveTheTownScreenView extends ScreenView {
         }
       }
 
-      var allRight = true;
-      var minX = Number.MAX_VALUE;
-      zombieList.forEach( function( z ) {
-        if ( z.center.x < minX ) {
-          minX = z.center.x;
-        }
-        if ( z.center.x < 800 ) {
-          allRight = false;
-        }
-      } );
-      if ( allRight ) {
-        createAllZombies();
-      }
+      // All the zombies must pass the 800 mark before we can go to the next wave
+      // var allRight = true;
+      // var minX = Number.MAX_VALUE;
+      // zombieList.forEach( function( zombie ) {
+      //   if ( zombie.center.x < minX ) {
+      //     minX = zombie.center.x;
+      //   }
+      //   if ( zombie.center.x < 800 ) {
+      //     allRight = false;
+      //   }
+      // } );
+      // if ( allRight ) {
+      //   startNextWave();
+      // }
     };
 
 
