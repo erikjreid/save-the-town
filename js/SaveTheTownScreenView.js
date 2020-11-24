@@ -423,7 +423,7 @@ class SaveTheTownScreenView extends ScreenView {
               tankType === 'toxic' ? toxicTankMissileImage :
               missileImage, {
                 center: selectedTank.center,
-                scale: 0.27
+                scale: tankType === 'normal' ? 1 : 0.27
               } );
             this.addChild( missile );
             const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
@@ -431,7 +431,7 @@ class SaveTheTownScreenView extends ScreenView {
             const vector = target.minus( missile.center ).normalized().times( 30 )
             missile.velocityVector = vector;
             missile.strength = 75;// goes through about 3-4 zombies
-            missile.rotation = vector.getAngle() + Math.PI;
+            missile.rotation = vector.getAngle() + (tankType === 'normal' ? Math.PI / 2 : Math.PI);
             missileList.push( missile );
             missileLaunchClip.play();
           }
@@ -581,7 +581,10 @@ class SaveTheTownScreenView extends ScreenView {
               zombie.life = 0;
             }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
-            missile.strength = 0;
+
+            if ( tankType === 'toxic' || tankType === 'grenade' ) {
+              missile.strength = 0;
+            }
           }
         }
 
