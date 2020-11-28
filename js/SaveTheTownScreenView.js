@@ -204,10 +204,46 @@ class SaveTheTownScreenView extends ScreenView {
       loadedHighScore = Number.parseInt( loadedHighScore );
     }
 
+    const createTank = ( x, y ) => {
+      var tank = new Image( tankImage, {
+        scale: new Vector2( -0.25, 0.25 ),
+        centerX: x,
+        centerY: y
+      } );
+
+      const rectangle = new Path( Shape.bounds( tank.localBounds ), {
+        stroke: 'green',
+        lineWidth: 20,
+        visible: false
+      } );
+      tank.addChild( rectangle );
+      tank.addInputListener( new ButtonListener( {
+        fire: function() {
+
+          // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
+          // dingSoundClip.play();
+        }
+      } ) );
+      tank.lifePoints = 30;
+      this.addChild( tank );
+      tankList.push( tank );
+
+      console.log( 'added tank at ' + tank.center + ', to this=' + this );
+    };
+
     const startNextWave = () => {
       wave++;
 
       if ( wave === 2 ) {
+        // TODO: add 5 tanks and 10 soldiers
+
+        createTank( wall.right + wall.width, wall.centerY + 100 );
+      }
+      if ( wave === 3 ) {
+
+      }
+
+      if ( wave === 4 ) {
         upgradepaused = true;
         this.addChild( tankPowerUpScreen )
       }
@@ -315,47 +351,19 @@ class SaveTheTownScreenView extends ScreenView {
 
     var tankList = [];
     wall.moveToBack();
-    for ( var i = 0; i < 6; i++ ) {
-      var tank = new Image( tankImage, {
-        scale: new Vector2( -0.25, 0.25 ),
-        left: wall.right,
-        y: i * 100
-      } );
 
-      var addTank = ( tank ) => {
-        const rectangle = new Path( Shape.bounds( tank.localBounds ), {
-          stroke: 'green',
-          lineWidth: 20,
-          visible: false
-        } );
-        tank.addChild( rectangle );
-        tank.addInputListener( new ButtonListener( {
-          fire: function() {
 
-            // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
-
-            tank.selected = !tank.selected;
-            rectangle.visible = tank.selected;
-            console.log( 'dingSound.play' );
-            dingSoundClip.play();
-          }
-        } ) );
-        tank.lifePoints = 30;
-        this.addChild( tank );
-        tank.moveToBack();
-        tankList.push( tank );
-      };
-      addTank( tank );
-
-    }
+    // create the initial tank
+    createTank( wall.right + wall.width, wall.centerY );
+    // createTank( wall.right + wall.width, wall.centerY+100 );
 
     var soldierList = [];
-    for ( var k = 0; k < 3; k++ ) {
-      for ( var i = 0; i < 8; i++ ) {
+    for ( var k = 0; k < 1; k++ ) {
+      for ( var i = 0; i < 3; i++ ) {
 
         var soldier = new Image( armySoldierImage, {
           scale: 0.7,
-          left: tank.right + k * 50,
+          left: tankList[ 0 ].right + k * 50,
           top: i * 75
         } );
 
@@ -370,13 +378,8 @@ class SaveTheTownScreenView extends ScreenView {
           soldier.addChild( rectangle );
           soldier.addInputListener( new ButtonListener( {
             fire: function() {
-              console.log( 'hello' );
-
               // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
-
-              soldier.selected = !soldier.selected;
-              rectangle.visible = soldier.selected;
-              dingSoundClip.play();
+              // dingSoundClip.play();
             }
           } ) );
           soldier.life = 25;
@@ -417,7 +420,7 @@ class SaveTheTownScreenView extends ScreenView {
           const selectedTank = tankList[ i ];
 
           // Simulate a cooldown.  No bullet chains
-          if ( selectedTank.selected && Math.random() < 0.1 ) {
+          if ( Math.random() < 0.1 ) {
             var missile = new Image(
               tankType === 'grenade' ? grenadebotbombImage :
               tankType === 'toxic' ? toxicTankMissileImage :
@@ -431,7 +434,7 @@ class SaveTheTownScreenView extends ScreenView {
             const vector = target.minus( missile.center ).normalized().times( 30 )
             missile.velocityVector = vector;
             missile.strength = 75;// goes through about 3-4 zombies
-            missile.rotation = vector.getAngle() + (tankType === 'normal' ? Math.PI / 2 : Math.PI);
+            missile.rotation = vector.getAngle() + ( tankType === 'normal' ? Math.PI / 2 : Math.PI );
             missileList.push( missile );
             missileLaunchClip.play();
           }
@@ -440,7 +443,7 @@ class SaveTheTownScreenView extends ScreenView {
         // Fire bullets from the soldiers
         for ( let i = 0; i < soldierList.length; i++ ) {
           const selectedSoldier = soldierList[ i ];
-          if ( selectedSoldier.selected && Math.random() < 0.1 && selectedSoldier.ammo >= 2 ) {
+          if ( Math.random() < 0.1 && selectedSoldier.ammo >= 2 ) {
 
             // Each soldier has 2 guns, so 2 bullets come out at the same time
             for ( var k = 0; k < 2; k++ ) {
