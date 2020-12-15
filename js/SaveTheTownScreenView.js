@@ -266,6 +266,7 @@ class SaveTheTownScreenView extends ScreenView {
       if ( wave === 2 ) {
         // TODO: add 5 tanks and 10 soldiers
 
+        createTank( wall.right + wall.width, wall.centerY - 100 );
         createTank( wall.right + wall.width, wall.centerY + 100 );
         createTank( wall.right + wall.width, wall.centerY + 200 );
 
