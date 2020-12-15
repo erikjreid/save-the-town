@@ -204,6 +204,35 @@ class SaveTheTownScreenView extends ScreenView {
       loadedHighScore = Number.parseInt( loadedHighScore );
     }
 
+    const createSoldier = ( x, y ) => {
+      var soldier = new Image( armySoldierImage, {
+        scale: 0.7,
+        x: x,
+        y: y
+      } );
+
+      soldier.ammo = 50;
+
+      var addSoldier = soldier => {
+        const rectangle = new Path( Shape.bounds( soldier.localBounds ), {
+          stroke: 'black',
+          lineWidth: 6,
+          visible: false
+        } );
+        soldier.addChild( rectangle );
+        soldier.addInputListener( new ButtonListener( {
+          fire: function() {
+            // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
+            // dingSoundClip.play();
+          }
+        } ) );
+        soldier.life = 25;
+        this.addChild( soldier );
+        soldierList.push( soldier );
+      };
+      addSoldier( soldier );
+    };
+
     const createTank = ( x, y ) => {
       var tank = new Image( tankImage, {
         scale: new Vector2( -0.25, 0.25 ),
@@ -359,37 +388,9 @@ class SaveTheTownScreenView extends ScreenView {
     // createTank( wall.right + wall.width, wall.centerY+100 );
 
     var soldierList = [];
-    for ( var k = 0; k < 1; k++ ) {
-      for ( var i = 0; i < 3; i++ ) {
-
-        var soldier = new Image( armySoldierImage, {
-          scale: 0.7,
-          left: tankList[ 0 ].right + k * 50,
-          top: i * 75
-        } );
-
-        soldier.ammo = 50;
-
-        var addSoldier = soldier => {
-          const rectangle = new Path( Shape.bounds( soldier.localBounds ), {
-            stroke: 'black',
-            lineWidth: 6,
-            visible: false
-          } );
-          soldier.addChild( rectangle );
-          soldier.addInputListener( new ButtonListener( {
-            fire: function() {
-              // THIS IS THE CODE THAT HAPPENS WHEN THE TANK IS PRESSED
-              // dingSoundClip.play();
-            }
-          } ) );
-          soldier.life = 25;
-          this.addChild( soldier );
-          soldierList.push( soldier );
-        };
-        addSoldier( soldier );
-      }
-    }
+    createSoldier( tankList[ 0 ].x + 30, tankList[ 0 ].y - 95 );
+    createSoldier( tankList[ 0 ].x + 30, tankList[ 0 ].y );
+    createSoldier( tankList[ 0 ].x + 30, tankList[ 0 ].y + 95 );
 
     var overlapsNextRow = function( zombie ) {
       for ( let i = 0; i < zombieList.length; i++ ) {
