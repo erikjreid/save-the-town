@@ -268,6 +268,9 @@ class SaveTheTownScreenView extends ScreenView {
 
         createTank( wall.right + wall.width, wall.centerY + 100 );
         createTank( wall.right + wall.width, wall.centerY + 200 );
+
+        createSoldier( soldierX, tankList[ 0 ].y - 95 * 2 );
+        createSoldier( soldierX, tankList[ 0 ].y + 95 * 2 );
       }
       if ( wave === 3 ) {
 
@@ -388,9 +391,10 @@ class SaveTheTownScreenView extends ScreenView {
     // createTank( wall.right + wall.width, wall.centerY+100 );
 
     var soldierList = [];
-    createSoldier( tankList[ 0 ].x + 30, tankList[ 0 ].y - 95 );
-    createSoldier( tankList[ 0 ].x + 30, tankList[ 0 ].y );
-    createSoldier( tankList[ 0 ].x + 30, tankList[ 0 ].y + 95 );
+    const soldierX = tankList[ 0 ].x + 30;
+    createSoldier( soldierX, tankList[ 0 ].y - 95 );
+    createSoldier( soldierX, tankList[ 0 ].y );
+    createSoldier( soldierX, tankList[ 0 ].y + 95 );
 
     var overlapsNextRow = function( zombie ) {
       for ( let i = 0; i < zombieList.length; i++ ) {
