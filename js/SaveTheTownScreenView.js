@@ -229,6 +229,23 @@ class SaveTheTownScreenView extends ScreenView {
         soldier.life = 25;
         this.addChild( soldier );
         soldierList.push( soldier );
+
+        // life bar
+        const experienceBarBorder = new Rectangle( 0, 0, 100, 20, {
+          centerX: soldier.width / 0.3 / 2 - 50,
+          centerY: 150,
+          stroke: 'black', fill: 'gray'
+        } );
+        soldier.addChild( experienceBarBorder );
+
+        // life bar
+        const experienceBar = new Rectangle( 0, 0, 0, 20, {
+          left: experienceBarBorder.left,
+          centerY: 150,
+          stroke: 'black', fill: 'rgb(100,229,229)'
+        } );
+        soldier.addChild( experienceBar );
+        soldier.experienceBar = experienceBar;
       };
       addSoldier( soldier );
     };
@@ -567,6 +584,10 @@ class SaveTheTownScreenView extends ScreenView {
           if ( soldier.reloadTime <= 0 ) {
             soldier.ammo = 50
           }
+        }
+        soldier.experienceBar.setRectWidth( soldier.experienceBar.width + 0.001 );
+        if ( soldier.experienceBar.width >= 100 ) {
+          soldier.experienceBar.setRectWidth( 0 )
         }
       }
 
