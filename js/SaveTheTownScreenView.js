@@ -324,7 +324,8 @@ class SaveTheTownScreenView extends ScreenView {
           var zombie = new Image( zombieImage, {
             scale: 0.3,
             y: i * 100 + Math.random() * 50,
-            x: ( k - 19 ) * 100
+            x: ( k - 19 ) * 100,
+            pickable: false
           } );
           zombie.row = k;
           zombie.life = 20;
@@ -395,8 +396,8 @@ class SaveTheTownScreenView extends ScreenView {
     var wall = new Image( wallImage, {
       scale: 2,
       x: 500,
-      y: -100
-
+      y: -100,
+      pickable: false
     } );
     this.addChild( wall );
 
