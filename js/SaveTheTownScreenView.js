@@ -245,6 +245,10 @@ class SaveTheTownScreenView extends ScreenView {
           stroke: 'black', fill: 'rgb(100,229,229)'
         } );
         soldier.addChild( experienceBar );
+        soldier.experience = 0;
+        soldier.updateExperienceBar = () => {
+          experienceBar.setRectWidth( soldier.experience );
+        };
         soldier.experienceBar = experienceBar;
       };
       addSoldier( soldier );
@@ -327,6 +331,7 @@ class SaveTheTownScreenView extends ScreenView {
             x: ( k - 19 ) * 100,
             pickable: false
           } );
+          zombie.experienceValue = 1;
           zombie.row = k;
           zombie.life = 20;
           zombie.maxLife = zombie.life;
@@ -366,6 +371,7 @@ class SaveTheTownScreenView extends ScreenView {
         var c = giant.center;
         giant.scale( 2 );
         giant.scaleFactor *= 2;
+        giant.experienceValue *= 3;
         giant.center = c;
         giant.attack *= 10;
         giant.life *= 100;
@@ -374,6 +380,7 @@ class SaveTheTownScreenView extends ScreenView {
         if ( wave >= 5 ) {
           giant.scale( 2 );
           giant.scaleFactor *= 2;
+          giant.experienceValue *= 3;
           giant.center = c;
           giant.attack *= 2;
           giant.life *= 5;
@@ -382,6 +389,7 @@ class SaveTheTownScreenView extends ScreenView {
         if ( wave >= 10 ) {
           giant.scale( 2 );
           giant.scaleFactor *= 2;
+          giant.experienceValue *= 3;
           giant.center = c;
           giant.attack *= 3;
           giant.life *= 5;
@@ -477,9 +485,11 @@ class SaveTheTownScreenView extends ScreenView {
                 fill: 'black',
                 center: selectedSoldier.center.plusXY( Math.random() * 200 - 100, Math.random() * 20 )
               } );
+
               this.addChild( bullet );
               const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
               const vector = target.minus( bullet.center ).normalized().times( 20 )
+              bullet.soldier = selectedSoldier;
               bullet.velocityVector = vector;
               bullet.strength = 25; // should be absorbed when hitting one small zombie
               bulletList.push( bullet );
@@ -585,10 +595,6 @@ class SaveTheTownScreenView extends ScreenView {
           if ( soldier.reloadTime <= 0 ) {
             soldier.ammo = 50
           }
-        }
-        soldier.experienceBar.setRectWidth( soldier.experienceBar.width + 0.001 );
-        if ( soldier.experienceBar.width >= 100 ) {
-          soldier.experienceBar.setRectWidth( 0 )
         }
       }
 
@@ -701,11 +707,14 @@ class SaveTheTownScreenView extends ScreenView {
         //let vector = bullet.target.minus( bullet.center ).normalized().times( 20 );
         const vector = bullet.velocityVector;
 
-
         for ( let i = 0; i < zombieList.length; i++ ) {
           const zombie = zombieList[ i ];
           if ( zombie.bounds.intersectsBounds( bullet.bounds ) ) {
             zombie.life = zombie.life - bullet.strength;
+            if ( zombie.life <= 0 ) {
+              bullet.soldier.experience = bullet.soldier.experience + zombie.experienceValue;
+              bullet.soldier.updateExperienceBar();
+            }
             bullet.strength = bullet.strength - 25;
 
             console.log( bullet.strength );
