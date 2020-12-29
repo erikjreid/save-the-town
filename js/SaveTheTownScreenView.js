@@ -169,7 +169,7 @@ class SaveTheTownScreenView extends ScreenView {
         upgradepaused = false;
 
         tankList.forEach( tank => {
-          tank.setImage( grenadetankbattleImage );
+          tank.tankImageNode.setImage( grenadetankbattleImage );
           tank.scale( -1, 1 )
           tank.translate( -750, 0 )
         } );
@@ -183,7 +183,7 @@ class SaveTheTownScreenView extends ScreenView {
         upgradepaused = false;
 
         tankList.forEach( tank => {
-          tank.setImage( toxicTankBattleImage );
+          tank.tankImageNode.setImage( toxicTankBattleImage );
           tank.scale( -1, 1 )
           tank.translate( -750, 0 )
         } );
@@ -255,18 +255,24 @@ class SaveTheTownScreenView extends ScreenView {
     };
 
     const createTank = ( x, y ) => {
-      var tank = new Image( tankImage, {
-        scale: new Vector2( -0.25, 0.25 ),
+
+      var tankImageNode = new Image( tankImage, {
+        scale: new Vector2( -0.25, 0.25 )
+      } );
+      const tank = new Node( {
+        children: [ tankImageNode ],
         centerX: x,
         centerY: y
       } );
+      tank.tankImageNode = tankImageNode;
 
-      const rectangle = new Path( Shape.bounds( tank.localBounds ), {
-        stroke: 'green',
-        lineWidth: 20,
-        visible: false
-      } );
-      tank.addChild( rectangle );
+      // const rectangle = new Path( Shape.bounds( tank.bounds ), {
+      //   stroke: 'green',
+      //   lineWidth: 20,
+      //   visible: false,
+      //   center: tank.center
+      // } );
+      // this.addChild( rectangle );
       tank.addInputListener( new ButtonListener( {
         fire: function() {
 
@@ -279,6 +285,27 @@ class SaveTheTownScreenView extends ScreenView {
       tankList.push( tank );
 
       console.log( 'added tank at ' + tank.center + ', to this=' + this );
+
+      // life bar
+      const experienceBarBorder = new Rectangle( 0, 0, 100, 20, {
+        center: tank.center,
+        stroke: 'black', fill: 'gray'
+      } );
+      this.addChild( experienceBarBorder );
+
+      // life bar
+      const experienceBar = new Rectangle( 0, 0, 0, 20, {
+        left: experienceBarBorder.left,
+        centerY: experienceBarBorder.centerY,
+        stroke: 'black', fill: 'rgb(100,229,229)'
+      } );
+      this.addChild( experienceBar );
+      tank.experience = 0;
+      tank.updateExperienceBar = () => {
+        experienceBar.setRectWidth( tank.experience );
+      };
+      tank.experience = 0;
+      tank.experienceBar = experienceBar;
     };
 
     const startNextWave = () => {
@@ -465,6 +492,7 @@ class SaveTheTownScreenView extends ScreenView {
             const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
 
             const vector = target.minus( missile.center ).normalized().times( 30 )
+            missile.tank = selectedTank;
             missile.velocityVector = vector;
             missile.strength = 75;// goes through about 3-4 zombies
             missile.rotation = vector.getAngle() + ( tankType === 'normal' ? Math.PI / 2 : Math.PI );
@@ -617,6 +645,8 @@ class SaveTheTownScreenView extends ScreenView {
             zombie.life = zombie.life - 0.7;
             if ( zombie.life < 0 ) {
               zombie.life = 0;
+              missile.tank.experience = missile.tank.experience + zombie.experienceValue;
+              missile.tank.updateExperienceBar();
             }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
 
