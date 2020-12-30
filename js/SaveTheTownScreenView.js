@@ -309,6 +309,10 @@ class SaveTheTownScreenView extends ScreenView {
       tank.experience = 0;
       tank.updateExperienceBar = () => {
         experienceBar.setRectWidth( tank.experience );
+
+        if ( tank.experience >= 100 ) {
+          tank.levelUp();
+        }
       };
       tank.level = 1;
       tank.levelUp = () => {
@@ -659,9 +663,7 @@ class SaveTheTownScreenView extends ScreenView {
               zombie.life = 0;
               missile.tank.experience = missile.tank.experience + zombie.experienceValue * 3;
 
-              if ( missile.tank.experience >= 100 ) {
-                missile.tank.levelUp();
-              }
+
 
               missile.tank.updateExperienceBar();
             }
@@ -690,6 +692,7 @@ class SaveTheTownScreenView extends ScreenView {
               center: missile.center,
               scale: 0.25
             } )
+            explosion.tank = missile.tank;
             if ( tankType === 'grenade' ) {
               explosion.remainingTime = 0.1;
             }
@@ -703,8 +706,6 @@ class SaveTheTownScreenView extends ScreenView {
             explosionList.push( explosion );
             this.addChild( explosion );
           }
-
-
         }
       }
 
@@ -732,6 +733,8 @@ class SaveTheTownScreenView extends ScreenView {
             zombie.life = zombie.life - damage; // 0.5 seconds alive in explosion. 0.8 damage per second * 1 second = 20 damage
             if ( zombie.life < 0 ) {
               zombie.life = 0;
+              explosion.tank.experience=explosion.tank.experience+zombie.experienceValue;
+              explosion.tank.updateExperienceBar();
             }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
           }
