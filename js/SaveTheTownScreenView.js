@@ -166,12 +166,14 @@ class SaveTheTownScreenView extends ScreenView {
       press: event => {
         tankType = 'grenade';
         this.removeChild( tankPowerUpScreen );
+        this.removeChild( tankPowerUpText );
         upgradepaused = false;
 
         tankList.forEach( tank => {
+          const center = tank.center;
           tank.tankImageNode.setImage( grenadetankbattleImage );
-          tank.scale( -1, 1 )
-          tank.translate( -750, 0 )
+          tank.scale( -1, 1 );
+          tank.center = center;
         } );
       }
     } ) );
@@ -191,6 +193,10 @@ class SaveTheTownScreenView extends ScreenView {
     } ) );
     const tankPowerUpScreen = new HBox( {
       children: [ grenadePowerUpButton, toxicPowerUpButton ]
+    } );
+    const tankPowerUpText = new Text( 'A tank has leveled up', {
+      fontSize: 60,
+      centerTop: this.layoutBounds.centerTop
     } );
 
     var zombieList = [];
@@ -304,6 +310,17 @@ class SaveTheTownScreenView extends ScreenView {
       tank.updateExperienceBar = () => {
         experienceBar.setRectWidth( tank.experience );
       };
+      tank.level = 1;
+      tank.levelUp = () => {
+        tank.experience = 0;
+        tank.level = tank.level + 1;
+        if ( tank.level === 2 ) {
+
+          upgradepaused = true;
+          this.addChild( tankPowerUpScreen );
+          this.addChild( tankPowerUpText );
+        }
+      };
       tank.experience = 0;
       tank.experienceBar = experienceBar;
     };
@@ -323,11 +340,6 @@ class SaveTheTownScreenView extends ScreenView {
       }
       if ( wave === 3 ) {
 
-      }
-
-      if ( wave === 4 ) {
-        upgradepaused = true;
-        this.addChild( tankPowerUpScreen )
       }
 
       if ( loadedHighScore && wave > loadedHighScore ) {
@@ -645,7 +657,12 @@ class SaveTheTownScreenView extends ScreenView {
             zombie.life = zombie.life - 0.7;
             if ( zombie.life < 0 ) {
               zombie.life = 0;
-              missile.tank.experience = missile.tank.experience + zombie.experienceValue;
+              missile.tank.experience = missile.tank.experience + zombie.experienceValue * 3;
+
+              if ( missile.tank.experience >= 100 ) {
+                missile.tank.levelUp();
+              }
+
               missile.tank.updateExperienceBar();
             }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
