@@ -169,12 +169,10 @@ class SaveTheTownScreenView extends ScreenView {
         this.removeChild( tankPowerUpText );
         upgradepaused = false;
 
-        tankList.forEach( tank => {
-          const center = tank.center;
-          tank.tankImageNode.setImage( grenadetankbattleImage );
-          tank.scale( -1, 1 );
-          tank.center = center;
-        } );
+        const center = levelUpTank.center;
+        levelUpTank.tankImageNode.setImage( grenadetankbattleImage );
+        levelUpTank.scale( -1, 1 );
+        levelUpTank.center = center;
       }
     } ) );
     const toxicPowerUpButton = new Image( toxictankImage, { maxHeight: 650 } );
@@ -184,11 +182,11 @@ class SaveTheTownScreenView extends ScreenView {
         this.removeChild( tankPowerUpScreen );
         upgradepaused = false;
 
-        tankList.forEach( tank => {
-          tank.tankImageNode.setImage( toxicTankBattleImage );
-          tank.scale( -1, 1 )
-          tank.translate( -750, 0 )
-        } );
+        const center = levelUpTank.center;
+        levelUpTank.tankImageNode.setImage( toxicTankBattleImage );
+        levelUpTank.scale( -1, 1 )
+        levelUpTank.translate( -750, 0 );
+        levelUpTank.center = center;
       }
     } ) );
     const tankPowerUpScreen = new HBox( {
