@@ -160,11 +160,11 @@ class SaveTheTownScreenView extends ScreenView {
         mousePressEvent = null;
       }
     } ) );
-    let tankType = 'normal';
+    let levelUpTank = null;
     const grenadePowerUpButton = new Image( grenadebotImage, { maxHeight: 650 } )
     grenadePowerUpButton.addInputListener( new PressListener( {
       press: event => {
-        tankType = 'grenade';
+        levelUpTank.tankType = 'grenade';
         this.removeChild( tankPowerUpScreen );
         this.removeChild( tankPowerUpText );
         upgradepaused = false;
@@ -180,7 +180,7 @@ class SaveTheTownScreenView extends ScreenView {
     const toxicPowerUpButton = new Image( toxictankImage, { maxHeight: 650 } );
     toxicPowerUpButton.addInputListener( new PressListener( {
       press: event => {
-        tankType = 'toxic';
+        levelUpTank.tankType = 'toxic';
         this.removeChild( tankPowerUpScreen );
         upgradepaused = false;
 
@@ -270,6 +270,7 @@ class SaveTheTownScreenView extends ScreenView {
         centerX: x,
         centerY: y
       } );
+      tank.tankType = 'normal';
       tank.tankImageNode = tankImageNode;
 
       // const rectangle = new Path( Shape.bounds( tank.bounds ), {
@@ -316,6 +317,7 @@ class SaveTheTownScreenView extends ScreenView {
       };
       tank.level = 1;
       tank.levelUp = () => {
+        levelUpTank = tank;
         tank.experience = 0;
         tank.level = tank.level + 1;
         if ( tank.level === 2 ) {
@@ -498,11 +500,11 @@ class SaveTheTownScreenView extends ScreenView {
           // Simulate a cooldown.  No bullet chains
           if ( Math.random() < 0.1 ) {
             var missile = new Image(
-              tankType === 'grenade' ? grenadebotbombImage :
-              tankType === 'toxic' ? toxicTankMissileImage :
+              selectedTank.tankType === 'grenade' ? grenadebotbombImage :
+              selectedTank.tankType === 'toxic' ? toxicTankMissileImage :
               missileImage, {
                 center: selectedTank.center,
-                scale: tankType === 'normal' ? 1 : 0.27
+                scale: selectedTank.tankType === 'normal' ? 1 : 0.27
               } );
             this.addChild( missile );
             const target = this.globalToLocalPoint( mousePressEvent.pointer.point );
@@ -511,7 +513,7 @@ class SaveTheTownScreenView extends ScreenView {
             missile.tank = selectedTank;
             missile.velocityVector = vector;
             missile.strength = 75;// goes through about 3-4 zombies
-            missile.rotation = vector.getAngle() + ( tankType === 'normal' ? Math.PI / 2 : Math.PI );
+            missile.rotation = vector.getAngle() + ( selectedTank.tankType === 'normal' ? Math.PI / 2 : Math.PI );
             missileList.push( missile );
             missileLaunchClip.play();
           }
@@ -664,12 +666,11 @@ class SaveTheTownScreenView extends ScreenView {
               missile.tank.experience = missile.tank.experience + zombie.experienceValue * 3;
 
 
-
               missile.tank.updateExperienceBar();
             }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
 
-            if ( tankType === 'toxic' || tankType === 'grenade' ) {
+            if ( missile.tank.tankType === 'toxic' || missile.tank.tankType === 'grenade' ) {
               missile.strength = 0;
             }
           }
@@ -685,18 +686,18 @@ class SaveTheTownScreenView extends ScreenView {
           missileExplodeClip.play();
           y--;
 
-          if ( tankType === 'grenade' || tankType === 'toxic' ) {
-            const explosion = new Image( tankType === 'grenade' ? explosionImage :
-                                         tankType === 'toxic' ? toxicTankExplosionImage :
+          if ( missile.tank.tankType === 'grenade' || missile.tank.tankType === 'toxic' ) {
+            const explosion = new Image( missile.tank.tankType === 'grenade' ? explosionImage :
+                                         missile.tank.tankType === 'toxic' ? toxicTankExplosionImage :
                                          explosionImage, {
               center: missile.center,
               scale: 0.25
             } )
             explosion.tank = missile.tank;
-            if ( tankType === 'grenade' ) {
+            if ( missile.tank.tankType === 'grenade' ) {
               explosion.remainingTime = 0.1;
             }
-            else if ( tankType === 'toxic' ) {
+            else if ( missile.tank.tankType === 'toxic' ) {
               explosion.remainingTime = 5;
             }
             else {
@@ -720,10 +721,10 @@ class SaveTheTownScreenView extends ScreenView {
           if ( zombie.bounds.intersectsBounds( explosion.bounds ) ) {
 
             let damage = 0;
-            if ( tankType === 'grenade' ) {
+            if ( explosion.tank.tankType === 'grenade' ) {
               damage = 4;
             }
-            else if ( tankType === 'toxic' ) {
+            else if ( explosion.tank.tankType === 'toxic' ) {
               damage = 0.3;
             }
             else {
@@ -733,7 +734,7 @@ class SaveTheTownScreenView extends ScreenView {
             zombie.life = zombie.life - damage; // 0.5 seconds alive in explosion. 0.8 damage per second * 1 second = 20 damage
             if ( zombie.life < 0 ) {
               zombie.life = 0;
-              explosion.tank.experience=explosion.tank.experience+zombie.experienceValue;
+              explosion.tank.experience = explosion.tank.experience + zombie.experienceValue;
               explosion.tank.updateExperienceBar();
             }
             zombie.lifebar.setRectWidth( 100 * zombie.life / zombie.maxLife );
