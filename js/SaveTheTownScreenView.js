@@ -327,6 +327,7 @@ class SaveTheTownScreenView extends ScreenView {
       };
       tank.experience = 0;
       tank.experienceBar = experienceBar;
+      tank.experienceBarBorder =experienceBarBorder;
     };
 
     const startNextWave = () => {
@@ -571,6 +572,8 @@ class SaveTheTownScreenView extends ScreenView {
           }
           if ( tank.lifePoints < 0 ) {
             tank.visible = false;
+            tank.experienceBar.visible = false;
+            tank.experienceBarBorder.visible = false;
             tankList.splice( j, 1 );
             j--;
             tankExplodeClip.play();
